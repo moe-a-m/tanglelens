@@ -7,3 +7,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
+
+# Organizer documents: kept locally, not redistributed (user decision 2026-10-07)
+docs/references/*.pdf

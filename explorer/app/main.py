@@ -38,14 +38,15 @@ TRACE_PATTERN = r"^[A-Za-z0-9._:-]{1,128}$"
 
 class IngestIn(BaseModel):
     block_id: str = Field(pattern=BLOCK_ID_PATTERN)
-    tag: str
+    # max lengths match the columns in db.py: PostgreSQL rejects longer values (500 instead of 422)
+    tag: str = Field(max_length=128)
     message: Any
     tag_hex: str | None = None
     data_hex: str | None = None
-    node: str | None = None
+    node: str | None = Field(None, max_length=128)
     submitted_at: datetime | None = None
-    message_type: str | None = None
-    source: str | None = None
+    message_type: str | None = Field(None, max_length=64)
+    source: str | None = Field(None, max_length=128)
     trace_id: str | None = Field(None, pattern=TRACE_PATTERN)
 
 

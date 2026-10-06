@@ -167,3 +167,9 @@ def test_rejected_block_is_not_published(calls, monkeypatch):
     calls["hornet_resp"] = (400, {"error": {"code": "400", "message": "invalid block"}})
     client.post("/upload?node=iota-hornet", json=BODY)
     assert fake.sent == []
+
+
+@pytest.mark.parametrize("field,bad", [("type", "x" * 65), ("source", "x" * 129), ("type", 5), ("source", ["a"])])
+def test_invalid_type_or_source_rejected_before_hornet(calls, field, bad):
+    assert client.post("/upload", json={**BODY, field: bad}).status_code == 400
+    assert calls["hornet"] == []

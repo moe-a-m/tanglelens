@@ -94,6 +94,12 @@ def upload():
     trace = body.get("trace")
     if trace is not None and not (isinstance(trace, str) and TRACE_RE.fullmatch(trace)):
         return jsonify(error="'trace' must be 1-128 characters from A-Z a-z 0-9 . _ : -"), 400
+    # Optional explorer metadata: check before submitting, so a block is never on the Tangle
+    # while the explorer has to reject its record (limits = explorer columns).
+    for field, limit in (("type", 64), ("source", 128)):
+        value = body.get(field)
+        if value is not None and not (isinstance(value, str) and len(value) <= limit):
+            return jsonify(error=f"'{field}' must be a string of at most {limit} characters"), 400
     tag = body["tag"]
     message = json.dumps(body["message"])          # same encoding as the original API
     tag_hex, data_hex = to_hex(tag), to_hex(message)

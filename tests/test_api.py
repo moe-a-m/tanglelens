@@ -252,3 +252,11 @@ def test_tangle_copy_errors(monkeypatch):
     assert client.get(f"/api/messages/{bid(77)}/tangle").status_code == 404           # unknown to Hornet
     monkeypatch.setattr(main, "hornet", fake_hornet(fail=httpx.ConnectError("down")))
     assert client.get(f"/api/messages/{bid(77)}/tangle").status_code == 502
+
+
+@pytest.mark.parametrize("field,limit", [("message_type", 64), ("source", 128), ("node", 128), ("tag", 128)])
+def test_overlong_metadata_is_422_not_500(field, limit):
+    """Code review: PostgreSQL enforces column lengths (SQLite does not); must be a clean 422."""
+    base = {"block_id": bid(88), "tag": "t", "message": {}}
+    assert client.post("/api/ingest", json={**base, field: "x" * (limit + 1)}).status_code == 422
+    assert client.post("/api/ingest", json={**base, field: "x" * limit}).status_code == 201

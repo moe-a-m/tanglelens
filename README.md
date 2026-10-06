@@ -82,7 +82,7 @@ To stop: `make down`. To wipe the tangle: `cd iota-tangle/docker/main && sudo ./
 
 ## Publishing a message
 
-Same request as the upstream aeriOS Messages API, plus three optional fields (`type`, `source`, and
+Same request as the upstream aeriOS Messages API, plus three optional fields (`type` ≤ 64 chars, `source` ≤ 128 chars, and
 `trace`, an id that groups related events of one flow, user or sensor; 1–128 characters from `A-Z a-z 0-9 . _ : -`):
 
 ```bash

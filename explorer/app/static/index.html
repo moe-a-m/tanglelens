@@ -147,6 +147,12 @@ function params(){
 async function loadList(){
   const r = await fetch("/api/messages?"+params()); const d = await r.json();
   const rows = document.getElementById("rows");
+  if (!r.ok){   // e.g. 422 for a block-id prefix shorter than 6 hex chars: say why instead of failing silently
+    const why = Array.isArray(d.detail) ? d.detail.map(e => `${(e.loc||[]).slice(-1)[0]}: ${e.msg}`).join("; ") : (d.detail || r.status);
+    rows.innerHTML = `<tr><td colspan="4" class="sub" style="padding:20px 12px;color:var(--bad)">Search not accepted: ${esc(why)}. A block-id prefix needs at least 6 hex characters.</td></tr>`;
+    document.getElementById("pager").innerHTML = "";
+    return;
+  }
   rows.innerHTML = d.items.length ? d.items.map(m => `
     <tr class="row" tabindex="0" data-id="${m.block_id}" aria-selected="${m.block_id===state.selected}">
       <td>${badge(m.verification.status)}</td>
@@ -247,6 +253,7 @@ async function showDetail(id){
 
 const cmpCache = {};   // block id -> last rendered comparison, so the 5 s refresh does not flicker
 async function showComparison(m){
+  if (cmpCache[m.block_id]) return;   // a Tangle block is immutable: fetch once, refresh only on "Verify again"
   const r = await fetch(`/api/messages/${encodeURIComponent(m.block_id)}/tangle`);
   const slot = document.getElementById("cmp-slot");
   if (!r.ok || !slot || state.selected !== m.block_id) return;
@@ -312,7 +319,7 @@ document.addEventListener("keydown", e => {
   const li = e.target.closest(".tl li"); if (li && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); showDetail(li.dataset.id); }
 });
 
-async function reverify(id){ await fetch(`/api/messages/${encodeURIComponent(id)}/verify`, {method:"POST"}); refresh(); showDetail(id); }
+async function reverify(id){ delete cmpCache[id]; await fetch(`/api/messages/${encodeURIComponent(id)}/verify`, {method:"POST"}); refresh(); showDetail(id); }
 
 function refresh(){ loadList(); loadStats(); }
 document.getElementById("filters").addEventListener("submit", e => { e.preventDefault(); state.offset=0; refresh(); });

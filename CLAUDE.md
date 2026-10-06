@@ -197,7 +197,7 @@ Already in the repo, tested only against `mock-hornet` with SQLite:
 Known gaps — work these before any new feature:
 1. ~~Never run against real Hornet.~~ P0 done 2026-10-06: §3 verified/corrected (`reports/hornet/README.md`).
 2. ~~Never run on PostgreSQL.~~ Demo and full suite pass on PostgreSQL 16.15 (`reports/tests/`).
-3. ~~No pytest suite.~~ `tests/` (58 + live smoke test), run with `make test` / `make smoke-real`.
+3. ~~No pytest suite.~~ `tests/` (115 + live smoke test), run with `make test` / `make smoke-real`.
 4. ~~No Makefile.~~ Done.
 5. ~~Upload status 201.~~ Restored upstream 200 (DESIGN D4); tag pre-check removed (OPEN_QUESTIONS #9).
 6. ~~UI date filters.~~ Labelled as UTC.

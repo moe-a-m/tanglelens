@@ -58,7 +58,7 @@ Two applications plus a database, exactly as the brief asks:
 - **Measured timing:** blocks are solid within 20 ms and milestone-referenced after 0.3–5.1 s
   (median 3.3 s, n = 20). The verifier interval (3 s) and retry budget are set from that
   measurement.
-- **Tests:** 96 automated tests pass on both SQLite and PostgreSQL. The verification unit tests
+- **Tests:** 115 automated tests pass on both SQLite and PostgreSQL. The verification unit tests
   use real Hornet responses as fixtures. A live smoke test (`make smoke-real`) runs three messages
   end to end on the real node. All summaries are saved in `reports/tests/`.
 - **Clean clone:** a fresh clone ran the stack, the tests, the smoke test and the demo

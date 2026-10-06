@@ -1,6 +1,10 @@
 """
 Eclipse aeriOS IOTA Messages API -- extended for the Advanced Explorer.
 
+MODIFIED from eclipse-aerios/iota-messages-api@1ed089a (Apache-2.0, see LICENSE and ../NOTICE):
+forwards accepted blocks to the explorer, adds optional "type"/"source", validates tag length,
+adds blockId to the response and a /health route. Success status stays HTTP 200 as upstream.
+
 Backward compatible with the original:  POST /upload?node=<hornet-host>
   body: {"tag": "...", "message": {...}}
 New optional body fields (stored as explorer metadata, NOT written to the Tangle):
@@ -95,8 +99,9 @@ def upload():
         }
         threading.Thread(target=forward_to_explorer, args=(record,), daemon=True).start()
 
-    # Original response shape kept, plus blockId for convenience
-    return jsonify(status_code=resp.status_code, return_payload=resp.text, blockId=block_id), resp.status_code
+    # Original response shape and HTTP 200 kept (upstream returns Flask's default 200 and
+    # reports Hornet's status in the body), plus blockId for convenience. See docs/DESIGN.md D4.
+    return jsonify(status_code=resp.status_code, return_payload=resp.text, blockId=block_id)
 
 
 @app.route("/health")

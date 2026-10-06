@@ -101,7 +101,7 @@ pre{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;paddi
 <script>
 const LABEL = {confirmed:"Confirmed", pending:"Awaiting milestone", unverified:"Not checked yet",
   not_solid:"Not solid yet", content_mismatch:"Content mismatch", not_found:"Not on Tangle",
-  conflicting:"Conflicting", error:"Node unreachable"};
+  conflicting:"Conflicting", error:"Node error"};
 const TONE = s => s==="confirmed" ? "ok" : ["pending","unverified","not_solid"].includes(s) ? "wait" : "bad";
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const short = id => id ? id.slice(0,10)+"…"+id.slice(-6) : "";
@@ -168,7 +168,7 @@ function verdict(m){
     content_mismatch: [`What is stored here does not match the Tangle.`, last.detail || ""],
     not_found: [`The Hornet node has no block with this ID.`, `It may have been rejected, or the ID was recorded incorrectly.`],
     conflicting: [`The Tangle marks this block as conflicting.`, last.detail || ""],
-    error: [`The Hornet node could not be reached for the last check.`, last.detail || ""],
+    error: [`The Hornet node could not be reached, or answered with an error, on the last check.`, last.detail || ""],
   }[v.status] || [v.status, ""];
   return `<div class="verdict ${TONE(v.status)}"><p>${esc(t[0])}</p><small>${esc(t[1])}</small></div>`;
 }

@@ -106,16 +106,16 @@ For each stored message the explorer calls:
 2. `GET /api/core/v2/blocks/{blockId}` and compares the on-chain `payload.tag` and `payload.data` with what it stored, at three levels: the exact hex bytes, the decoded JSON, and a SHA-256 fingerprint. Tampering with either the raw or the human-readable copy in the database is detected.
 3. `GET /api/core/v2/milestones/by-index/{index}` to record the milestone timestamp, a Tangle-attested time for the message.
 
-| Status | Meaning | Rechecked? |
-|---|---|---|
-| `unverified` | Stored, not checked yet | yes |
-| `pending` | On the Tangle and solid, not yet referenced by a milestone; content matches | yes |
-| `not_solid` | Node has the block but not its full past cone yet; content matches | yes |
-| `confirmed` | Solid, milestone-referenced, not conflicting, contents identical | re-audited |
-| `content_mismatch` | Stored copy and Tangle differ (details say which field). Takes precedence over every other state | re-audited |
-| `conflicting` | Ledger marks the block as conflicting | re-audited |
-| `not_found` | Hornet has no such block (HTTP 404) | re-audited |
-| `error` | Hornet unreachable or non-404 error; last known solidity/milestone are kept | yes |
+| Status | UI label | Meaning | Rechecked? |
+|---|---|---|---|
+| `unverified` | Not checked yet | Stored, not checked yet | yes |
+| `pending` | Awaiting milestone | On the Tangle and solid, not yet referenced by a milestone; content matches | yes |
+| `not_solid` | Not solid yet | Node has the block but not its full past cone yet; content matches | yes |
+| `confirmed` | Confirmed | Solid, milestone-referenced, not conflicting, contents identical | re-audited |
+| `content_mismatch` | Content mismatch | Stored copy and Tangle differ (details say which field). Takes precedence over every other state | re-audited |
+| `conflicting` | Conflicting | Ledger marks the block as conflicting | re-audited |
+| `not_found` | Not on Tangle | Hornet has no such block (HTTP 404) | re-audited |
+| `error` | Node error | Hornet unreachable or non-404 error; last known solidity/milestone are kept | yes |
 
 Measured on the real node: blocks are solid within 20 ms and referenced by a milestone after
 0.3–5.1 s (median 3.3 s, n = 20; milestones every ~5 s). The background loop therefore rechecks

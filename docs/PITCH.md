@@ -1,4 +1,4 @@
-# Pitch: IOTA Advanced Explorer for Eclipse aeriOS
+# Pitch: TangleLens, the IOTA Advanced Explorer for Eclipse aeriOS
 
 ## 1. Problem
 

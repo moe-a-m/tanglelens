@@ -1,4 +1,4 @@
-# IOTA Advanced Explorer for Eclipse aeriOS
+# TangleLens: IOTA Advanced Explorer for Eclipse aeriOS
 
 Veles Hack 2026, Challenge 2 (O-CEI): Trust Ledger Traceability.
 

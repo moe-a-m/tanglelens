@@ -129,7 +129,7 @@ async def lifespan(_: FastAPI):
     mqtt.stop()
 
 
-app = FastAPI(title="IOTA Advanced Explorer", version="1.0", lifespan=lifespan,
+app = FastAPI(title="TangleLens: IOTA Advanced Explorer", version="1.0", lifespan=lifespan,
               description="Observability, search and integrity verification for aeriOS Tangle messages.")
 
 

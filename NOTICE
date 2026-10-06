@@ -14,4 +14,4 @@ Apache License, Version 2.0 (see the LICENSE file in each directory below):
    Location: messages-api/ (modified copy); unmodified original kept in
    docs/references/upstream/iota-messages-api@1ed089a/
    Modified: send_data.py forwards every accepted block to the Advanced Explorer,
-   adds optional "type"/"source" fields, validates tag length, returns blockId.
+   adds optional "type"/"source" fields, returns blockId.

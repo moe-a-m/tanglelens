@@ -107,8 +107,9 @@ def test_missing_fields(calls):
     assert calls["hornet"] == []
 
 
-def test_tag_over_64_bytes_rejected_before_hornet(calls):
-    """Hornet itself answers 400 for 65 bytes (H7). See docs/OPEN_QUESTIONS.md #9."""
-    assert client.post("/upload", json={"tag": "a" * 65, "message": {}}).status_code == 400
-    assert client.post("/upload", json={"tag": "a" * 64, "message": {}}).status_code == 200
-    assert len(calls["hornet"]) == 1
+def test_tag_over_64_bytes_goes_to_hornet_like_upstream(calls):
+    """No pre-check (OPEN_QUESTIONS #9): Hornet rejects 65 bytes with 400 (H7), returned in a 200."""
+    calls["hornet_resp"] = (400, {"error": {"code": "400", "message": "slice (len 65) exceeds max length of 64"}})
+    r = client.post("/upload", json={"tag": "a" * 65, "message": {}})
+    assert r.status_code == 200 and r.get_json()["status_code"] == 400 and r.get_json()["blockId"] is None
+    assert len(calls["hornet"]) == 1 and calls["explorer"] == []

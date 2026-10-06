@@ -199,8 +199,7 @@ Known gaps — work these before any new feature:
 2. ~~Never run on PostgreSQL.~~ Demo and full suite pass on PostgreSQL 16.15 (`reports/tests/`).
 3. ~~No pytest suite.~~ `tests/` (58 + live smoke test), run with `make test` / `make smoke-real`.
 4. ~~No Makefile.~~ Done.
-5. ~~Upload status 201.~~ Restored upstream 200 (user's decision, DESIGN D4). Still open: the tag
-   pre-check returns 400 where upstream returns 200 (OPEN_QUESTIONS #9).
+5. ~~Upload status 201.~~ Restored upstream 200 (DESIGN D4); tag pre-check removed (OPEN_QUESTIONS #9).
 6. ~~UI date filters.~~ Labelled as UTC.
 7. Forwarding failures after all retries are only logged (no durable outbox, no backfill).
 8. Explorer has no authentication. Acceptable for the demo; state it in the README.

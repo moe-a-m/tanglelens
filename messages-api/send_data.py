@@ -2,7 +2,7 @@
 Eclipse aeriOS IOTA Messages API -- extended for the Advanced Explorer.
 
 MODIFIED from eclipse-aerios/iota-messages-api@1ed089a (Apache-2.0, see LICENSE and ../NOTICE):
-forwards accepted blocks to the explorer, adds optional "type"/"source", validates tag length,
+forwards accepted blocks to the explorer, adds optional "type"/"source",
 adds blockId to the response and a /health route. Success status stays HTTP 200 as upstream.
 
 Backward compatible with the original:  POST /upload?node=<hornet-host>
@@ -68,8 +68,8 @@ def upload():
     tag = body["tag"]
     message = json.dumps(body["message"])          # same encoding as the original API
     tag_hex, data_hex = to_hex(tag), to_hex(message)
-    if len(tag.encode("utf-8")) > 64:
-        return jsonify(error="tag must be at most 64 bytes (Stardust tagged-data limit)"), 400
+    # No tag-length pre-check: as upstream, Hornet is the authority and rejects tags over 64 bytes
+    # with 400, which is returned wrapped in HTTP 200 (docs/OPEN_QUESTIONS.md #9, reports/hornet H7).
 
     payload = {"protocolVersion": 2, "payload": {"type": 5, "tag": tag_hex, "data": data_hex}}
     submitted_at = datetime.now(timezone.utc).isoformat()

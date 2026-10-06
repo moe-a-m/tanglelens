@@ -1,0 +1,7 @@
+.git
+iota-tangle
+reports
+docs
+**/__pycache__
+**/*.db
+.env

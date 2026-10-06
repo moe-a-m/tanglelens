@@ -1,0 +1,30 @@
+<section id="solution" data-transition="fade" style="background:#FBFBF8;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:600;color:#2F5BEA;letter-spacing:1px">WHAT WE BUILT</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Two applications and a parallel database</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:20px;background:#F4F6F8;border:1px solid #D3DBE3;border-radius:16px;padding:48px">
+<p style="font-size:24px;font-weight:600;color:#2F5BEA">1 · EXTENDED aeriOS MESSAGES API</p>
+<h3 style="font-size:44px;font-weight:600">Same contract, now traceable</h3>
+<ul style="font-size:32px;line-height:1.45;color:#4A5568">
+<li>Unchanged <b>POST /upload</b> and HTTP 200</li>
+<li>Forwards the block id and the <b>exact bytes</b> sent to Hornet</li>
+<li>Optional type, source and trace metadata</li>
+<li>Never fails an upload if the explorer is down</li>
+</ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:20px;background:#F4F6F8;border:1px solid #D3DBE3;border-radius:16px;padding:48px">
+<p style="font-size:24px;font-weight:600;color:#2F5BEA">2 · ADVANCED EXPLORER</p>
+<h3 style="font-size:44px;font-weight:600">Searchable and verified</h3>
+<ul style="font-size:32px;line-height:1.45;color:#4A5568">
+<li>PostgreSQL record with readable metadata</li>
+<li>REST search by block id, date and tag</li>
+<li>Solidity via <b>GET block metadata</b></li>
+<li>Content check via <b>GET block</b></li>
+</ul>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B6B7F">The brief's four mandatory functions, one per line: integration, search, validation, content verification</p>
+<aside>Exactly what the brief asks for. First, the aeriOS Messages API, extended but backwards compatible: same endpoint, same HTTP 200, and after Hornet accepts a block it forwards the block id and the exact bytes it sent. Second, the Advanced Explorer: a PostgreSQL copy enriched with metadata, a search API, and verification of every block against Hornet.</aside>
+</section>

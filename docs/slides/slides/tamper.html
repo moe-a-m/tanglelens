@@ -1,0 +1,15 @@
+<section id="tamper" data-transition="fade" style="background:#FBFBF8;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:600;color:#B3261E;letter-spacing:1px">TAMPER DETECTION</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">An inflated trust score is caught in seconds</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<img src="/_blob/c364177511eac4c20aa8ee3ae02b45f6" alt="Explorer showing a content mismatch: stored copy with trust_score 0.95 next to the Tangle copy with 0.61, fields that differ: trust_score" style="width:944px;height:590px;object-fit:contain;border:1px solid #D3DBE3;border-radius:12px;background:#F4F6F8">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:column;gap:6px"><h3 style="font-size:32px;font-weight:600">1 · Someone edits the database</h3><p style="font-size:26px;line-height:1.4;color:#4A5568">ie-2's trust_score goes from 0.61 to 0.95 in the explorer's copy.</p></div>
+<div style="display:flex;flex-direction:column;gap:6px"><h3 style="font-size:32px;font-weight:600">2 · Verified against Hornet</h3><p style="font-size:26px;line-height:1.4;color:#4A5568">Status becomes Content mismatch; stored and Tangle copies side by side, the changed field named.</p></div>
+<div style="display:flex;flex-direction:column;gap:6px"><h3 style="font-size:32px;font-weight:600">3 · Everyone hears about it</h3><p style="font-size:26px;line-height:1.4;color:#4A5568">The trace flips to not verified and an integrity alert fires: UI banner, webhook, MQTT.</p></div>
+</div>
+</div>
+<aside>This is the core claim of the brief: the Tangle stays authoritative. We change ie-2's trust score directly in Postgres, from 0.61 to 0.95. On the next check the explorer compares against the block on Hornet and flags a content mismatch, shows both copies side by side, names the field, marks the whole trace as not verified and raises an alert. Nobody can quietly falsify the explorer.</aside>
+</section>

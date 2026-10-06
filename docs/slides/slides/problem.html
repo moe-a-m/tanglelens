@@ -1,0 +1,26 @@
+<section id="problem" data-transition="fade" style="background:#F4F6F8;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:600;color:#2F5BEA;letter-spacing:1px">THE PROBLEM</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">The Tangle proves, but it does not explain</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:16px;background:#FBFBF8;border:1px solid #D3DBE3;border-radius:16px;padding:40px">
+<x-icon name="Code" style="color:#2F5BEA;width:56px;height:56px"></x-icon>
+<h3 style="font-size:44px;font-weight:600">Hex, not meaning</h3>
+<p style="font-size:32px;line-height:1.4;color:#4A5568">aeriOS trust data sits in the ledger as hex-encoded JSON behind 32-byte block ids.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#FBFBF8;border:1px solid #D3DBE3;border-radius:16px;padding:40px">
+<x-icon name="Search" style="color:#2F5BEA;width:56px;height:56px"></x-icon>
+<h3 style="font-size:44px;font-weight:600">No search</h3>
+<p style="font-size:32px;line-height:1.4;color:#4A5568">No lookup by tag, by date or by the component that sent a message.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#FBFBF8;border:1px solid #D3DBE3;border-radius:16px;padding:40px">
+<x-icon name="Verified" style="color:#2F5BEA;width:56px;height:56px"></x-icon>
+<h3 style="font-size:44px;font-weight:600">No receipt</h3>
+<p style="font-size:32px;line-height:1.4;color:#4A5568">Nothing tells an operator a message is on the ledger, final, and unchanged.</p>
+</div>
+</div>
+<p style="font-size:32px;line-height:1.4;color:#4A5568;font-style:italic">“IOTA offers limited support to monitor the data stored in the Tangle and to verify the correct insertion of the messages.”</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B6B7F">Source: Challenge 2 (O-CEI) brief, Context &amp; Motivation</p>
+<aside>Eclipse aeriOS uses the IOTA Tangle so that trust information cannot be changed. That works. But for the people who rely on it, the Tangle is opaque: hex payloads, 32-byte ids, no search, and no easy way to know a message really landed and is final. The brief says this directly.</aside>
+</section>

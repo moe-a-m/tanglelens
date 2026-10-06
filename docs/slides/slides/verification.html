@@ -1,0 +1,29 @@
+<section id="verification" data-transition="fade" style="background:#FBFBF8;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:600;color:#2F5BEA;letter-spacing:1px">VERIFICATION</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">Solid is not confirmed: eight honest states</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<table style="width:1040px;font-size:26px;color:#14213D">
+<tr><th style="width:30%;text-align:left">Status</th><th style="width:70%;text-align:left">Meaning</th></tr>
+<tr><td>confirmed</td><td>Solid, milestone-referenced, contents identical</td></tr>
+<tr><td>pending</td><td>On the Tangle and solid, awaiting a milestone</td></tr>
+<tr><td>unverified</td><td>Stored, first check runs within seconds</td></tr>
+<tr><td>not_solid</td><td>Node lacks the block's full past cone</td></tr>
+<tr style="background:#FBE4E2"><td>content_mismatch</td><td>Stored copy differs from the Tangle; beats every other state</td></tr>
+<tr style="background:#FBE4E2"><td>not_found</td><td>Hornet answers 404 for the block</td></tr>
+<tr style="background:#FBE4E2"><td>conflicting</td><td>Ledger marks the block conflicting</td></tr>
+<tr><td>error</td><td>Node unreachable; last known state kept</td></tr>
+</table>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#F4F6F8;border:1px solid #D3DBE3;border-radius:16px;padding:40px">
+<h3 style="font-size:32px;font-weight:600">Content check, three levels</h3>
+<ol style="font-size:28px;line-height:1.45;color:#4A5568">
+<li>Exact hex bytes</li>
+<li>Decoded JSON</li>
+<li>SHA-256 fingerprint</li>
+</ol>
+<p style="font-size:24px;line-height:1.4;color:#4A5568">Editing either the raw or the readable copy in the database is caught. Every check is appended to an audit trail; all messages are re-audited every 5 minutes.</p>
+</div>
+</div>
+<aside>A block is solid almost immediately, but it is only final when a milestone references it, so we report those separately. Problem states are in red; content mismatch takes precedence over everything. The content check compares at three levels, so tampering with either the hex or the human-readable copy is detected. Every check is kept in an audit trail, never overwritten.</aside>
+</section>

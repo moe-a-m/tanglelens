@@ -1,0 +1,17 @@
+<section id="demo" data-transition="fade" style="background:#FBFBF8;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:600;color:#2F5BEA;letter-spacing:1px">LIVE DEMO · REAL NODE · ABOUT 4 MINUTES</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1">make demo</h2>
+</div>
+<table style="width:1664px;font-size:28px;color:#14213D">
+<tr><th style="width:8%;text-align:left">Step</th><th style="width:46%;text-align:left">What happens</th><th style="width:46%;text-align:left">What to look at</th></tr>
+<tr><td>1</td><td>Five aeriOS trust messages published</td><td>Block ids from the unchanged /upload</td></tr>
+<tr><td>2</td><td>Verified right after insertion</td><td>Pending (solid), then confirmed</td></tr>
+<tr><td>3</td><td>Search by block id, date and tag</td><td>Counts in the terminal, filters in the UI</td></tr>
+<tr><td>4</td><td>MQTT live feed (make mqtt-watch)</td><td>Block records and alerts as they happen</td></tr>
+<tr><td>5</td><td>Trace timeline for one IE</td><td>Every event checked against its block id</td></tr>
+<tr><td>6</td><td>Trust score inflated in the database</td><td>Content mismatch, side by side, alert</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B6B7F">Fallback: screenshots in docs/screenshots and saved runs in reports/demo. The development mock is never used in the demo.</p>
+<aside>Switch to the terminal and the browser. Run make demo; in a second terminal run make mqtt-watch. Narrate each step. If a milestone arrives before step 2's check, it shows confirmed instead of pending; say that blocks are confirmed within about 5 seconds. If the network fails, use the screenshots and the saved run.</aside>
+</section>

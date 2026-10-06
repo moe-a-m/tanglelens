@@ -13,5 +13,5 @@ Apache License, Version 2.0 (see the LICENSE file in each directory below):
    https://github.com/eclipse-aerios/iota-messages-api
    Location: messages-api/ (modified copy); unmodified original kept in
    docs/references/upstream/iota-messages-api@1ed089a/
-   Modified: send_data.py forwards every accepted block to the Advanced Explorer,
+   Modified: send_data.py forwards every accepted block to the Advanced Explorer (HTTP and MQTT),
    adds optional "type"/"source" fields, returns blockId.

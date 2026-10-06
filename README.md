@@ -25,7 +25,8 @@ not only the development mock. The evidence is in [`reports/`](reports/) (see [E
 | Path | What it is |
 |---|---|
 | `messages-api/` | The aeriOS IOTA Messages API, extended. Same `POST /upload?node=` contract and HTTP 200 response as upstream. After Hornet accepts a block it forwards the blockId and the exact bytes it sent to the explorer (background thread, retries with backoff, never fails the upload). Adds optional `type` and `source` fields. |
-| `explorer/` | FastAPI service: ingest, search, verification, web UI. PostgreSQL in compose, SQLite for local runs. |
+| `explorer/` | FastAPI service: ingest, search, verification, traces, alerts, web UI. PostgreSQL in compose, SQLite for local runs. |
+| `mosquitto/` | MQTT broker config (Eclipse Mosquitto): a second delivery path for block records and a live feed of alerts. |
 | `iota-tangle/` | Vendored [eclipse-aerios/iota-tangle](https://github.com/eclipse-aerios/iota-tangle) @ `7803e5d` (Apache-2.0): Hornet 2.0 + coordinator + dashboard. |
 | `mock-hornet/` | Development stand-in for Hornet, shaped after real captures. **Not part of the solution and not used in the demo.** |
 | `tests/` | pytest: verification unit tests on real Hornet captures, API contract, Messages API, live smoke test. |
@@ -65,6 +66,7 @@ To stop: `make down`. To wipe the tangle: `cd iota-tangle/docker/main && sudo ./
 | `make test` | Full test suite in a container, on SQLite and on the compose PostgreSQL; summary saved in `reports/tests/` |
 | `make smoke-real` | Live test: 3 messages through the Messages API to the real node must reach `confirmed` and be findable by block id, date and tag |
 | `make up-mock` / `make e2e-mock` | Development only: fake Hornet on its own network (`iota-mock-net`) + stack, and the same live test against it. The tangle may keep running; only one explorer stack at a time (`make down` first) |
+| `make mqtt-watch` | Print the live MQTT feed (block records and alerts) |
 | `make logs`, `make reset-db` | Follow logs; wipe the explorer database (the Tangle is untouched) |
 
 ## Publishing a message
@@ -129,6 +131,17 @@ retryable messages every 3 s (less than one milestone interval), up to 60 times.
 re-audits every message every 5 minutes, so tampering after confirmation is still caught. Every
 check is appended to an audit trail (`validations` table), never overwritten.
 
+## MQTT (live feed and second delivery path)
+
+The Messages API publishes every accepted block record to `aerios/iota/blocks`, and the explorer
+publishes every alert to `aerios/explorer/alerts` (QoS 1, broker on port 1883). The explorer also
+*subscribes* to `aerios/iota/blocks` with a persistent session, so records reach it on two
+independent paths (HTTP and MQTT). Whichever arrives first creates the row; `received_via` records
+which one did. If the explorer is down for longer than the HTTP retry window, the broker keeps the
+records and delivers them when it comes back (tested live: `reports/mqtt/`).
+
+Watch the live feed: `make mqtt-watch`. Set `MQTT_HOST` empty in `docker-compose.yml` to switch MQTT off.
+
 ## Alerts
 
 Two kinds of alert are appended to the `alerts` table, shown in the UI and optionally POSTed to
@@ -173,11 +186,14 @@ The full list with the basis for each is in [`docs/DESIGN.md`](docs/DESIGN.md). 
 | `VERIFY_INTERVAL` / `AUDIT_INTERVAL` / `MAX_CHECKS` | explorer | `3` / `300` seconds / `60` |
 | `ALERT_TAGS` | explorer | compose: `*.alert` (comma list of shell-style globs; a matching tag raises an application alert; empty = off) |
 | `ALERT_WEBHOOK_URL` | explorer | empty (if set, every alert is POSTed there as JSON, best effort) |
+| `MQTT_HOST` / `MQTT_PORT` | explorer, messages-api | compose: `mqtt-broker` / `1883` (empty host = MQTT off) |
+| `MQTT_BLOCKS_TOPIC` / `MQTT_ALERTS_TOPIC` | both / explorer | `aerios/iota/blocks` / `aerios/explorer/alerts` |
 
 ## Limitations
 
 - **No authentication** on the explorer or the Messages API. Fine for a local demo, not for production.
-- **Forwarding is best effort.** If the explorer stays unreachable through all retries (~15 s), the message is on the Tangle but not in the explorer; it is only logged. There is no durable outbox or backfill yet (ingest is idempotent, so either can be added safely).
+- **Delivery to the explorer is not fully durable.** HTTP forwarding retries for ~15 s. MQTT covers longer explorer outages through the broker's persistent session, but a message is lost if the broker is *also* unreachable when it is published, or if the explorer's database fails while it handles that message. There is no backfill from the Tangle yet; ingest is idempotent, so one can be added safely.
+- **MQTT broker runs with demo settings**: anonymous access, no TLS.
 - **Public default keys.** The tangle's coordinator and dashboard keys are the upstream defaults published in the repo. Change them for anything beyond a local demo (see `iota-tangle/README.md`).
 - **Single node.** On this one-node tangle Hornet reports `isHealthy: false` (and `/health` 503) although milestones flow normally; the explorer shows the node as reachable and does not depend on that flag. `conflicting` and `not_solid` were never observed on the real node; they are covered by tests derived from real responses.
 - The Messages API runs on Flask's development server, as upstream does.

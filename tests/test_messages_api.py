@@ -127,3 +127,43 @@ def test_trace_is_forwarded_not_written_on_chain(calls):
 def test_invalid_trace_is_rejected_before_hornet(calls, bad):
     assert client.post("/upload", json={**BODY, "trace": bad}).status_code == 400
     assert calls["hornet"] == []
+
+
+class FakeMqtt:
+    def __init__(self, rc=0, raise_exc=None):
+        self.sent, self.rc, self.raise_exc = [], rc, raise_exc
+
+    def publish(self, topic, payload, qos=0):
+        if self.raise_exc:
+            raise self.raise_exc
+        self.sent.append((topic, json.loads(payload), qos))
+
+        class Info:
+            pass
+        i = Info()
+        i.rc = self.rc
+        return i
+
+
+def test_accepted_block_is_also_published_to_mqtt(calls, monkeypatch):
+    fake = FakeMqtt()
+    monkeypatch.setattr(send_data, "mqtt_client", fake)
+    client.post("/upload?node=iota-hornet", json={**BODY, "trace": "t-1"})
+    topic, record, qos = fake.sent[0]
+    assert (topic, qos) == ("aerios/iota/blocks", 1)
+    assert record == calls["explorer"][0]                                        # same record as the HTTP forward
+
+
+@pytest.mark.parametrize("fake", [FakeMqtt(rc=4), FakeMqtt(raise_exc=OSError("broker gone"))])
+def test_mqtt_trouble_never_fails_the_upload(calls, monkeypatch, fake):
+    monkeypatch.setattr(send_data, "mqtt_client", fake)
+    r = client.post("/upload?node=iota-hornet", json=BODY)
+    assert r.status_code == 200 and r.get_json()["blockId"] == SUBMIT["blockId"]
+
+
+def test_rejected_block_is_not_published(calls, monkeypatch):
+    fake = FakeMqtt()
+    monkeypatch.setattr(send_data, "mqtt_client", fake)
+    calls["hornet_resp"] = (400, {"error": {"code": "400", "message": "invalid block"}})
+    client.post("/upload?node=iota-hornet", json=BODY)
+    assert fake.sent == []

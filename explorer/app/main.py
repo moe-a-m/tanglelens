@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 
-from . import alerts
+from . import alerts, mqtt
 from .db import Alert, Message, SessionLocal, init_db, utcnow
 from .verify import RETRYABLE, Hornet, sha256_hex, verify_message
 
@@ -64,7 +64,7 @@ def _iso(dt: datetime | None) -> str | None:
 def serialize(m: Message, with_history: bool = False) -> dict:
     out = {
         "block_id": m.block_id, "tag": m.tag, "message_type": m.message_type, "source": m.source,
-        "node": m.node, "trace_id": m.trace_id, "message": m.payload, "data_sha256": m.data_sha256,
+        "node": m.node, "trace_id": m.trace_id, "received_via": m.received_via, "message": m.payload, "data_sha256": m.data_sha256,
         "submitted_at": _iso(m.submitted_at), "received_at": _iso(m.received_at),
         "verification": {
             "status": m.status, "is_solid": m.is_solid, "content_match": m.content_match,
@@ -119,10 +119,12 @@ async def audit_loop():
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
+    mqtt.start(store, IngestIn)
     tasks = [asyncio.create_task(verifier_loop()), asyncio.create_task(audit_loop())]
     yield
     for t in tasks:
         t.cancel()
+    mqtt.stop()
 
 
 app = FastAPI(title="IOTA Advanced Explorer", version="1.0", lifespan=lifespan,
@@ -133,10 +135,10 @@ app = FastAPI(title="IOTA Advanced Explorer", version="1.0", lifespan=lifespan,
 @app.post("/api/ingest", status_code=201)
 def ingest(item: IngestIn):
     """Called by the Messages API after Hornet accepts a block. Idempotent on block_id."""
-    return store(item)
+    return store(item, via="http")
 
 
-def store(item: IngestIn) -> dict:
+def store(item: IngestIn, via: str = "http") -> dict:
     """Persist one forwarded record; shared by every delivery path. Idempotent on block_id."""
     text = json.dumps(item.message)                       # same encoding as the Messages API
     data_hex = item.data_hex or _to_hex(text)
@@ -144,6 +146,7 @@ def store(item: IngestIn) -> dict:
         block_id=item.block_id, tag=item.tag, tag_hex=item.tag_hex or _to_hex(item.tag),
         payload=item.message, payload_text=text, data_hex=data_hex, data_sha256=sha256_hex(data_hex),
         message_type=item.message_type, source=item.source, node=item.node, trace_id=item.trace_id,
+        received_via=via,
         submitted_at=_naive_utc(item.submitted_at) or utcnow(), received_at=utcnow(), status="unverified",
     )
     with SessionLocal() as s:

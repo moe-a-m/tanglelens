@@ -2,7 +2,8 @@
 
 integrity:   a check moved a message INTO content_mismatch / not_found / conflicting
 application: an ingested message's tag matches ALERT_TAGS (comma list of fnmatch globs)
-Delivery: the alerts table (REST + UI) and an optional best-effort webhook (ALERT_WEBHOOK_URL).
+Delivery: the alerts table (REST + UI), MQTT topic aerios/explorer/alerts when MQTT is enabled (D12),
+and an optional best-effort webhook (ALERT_WEBHOOK_URL).
 """
 import fnmatch
 import logging
@@ -46,5 +47,7 @@ def post_webhook(payload: dict) -> None:
 def notify(alert: Alert) -> None:
     """Called after the alert row is committed. Never raises, never blocks the caller."""
     log.warning("ALERT %s %s %s %s", alert.kind, alert.status, alert.block_id[:18], alert.detail or "")
+    from . import mqtt                      # local import: mqtt is optional and imports nothing from here
+    mqtt.publish_alert(to_dict(alert))
     if ALERT_WEBHOOK_URL:
         threading.Thread(target=post_webhook, args=(to_dict(alert),), daemon=True).start()

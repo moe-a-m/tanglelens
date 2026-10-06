@@ -201,7 +201,8 @@ Known gaps — work these before any new feature:
 4. ~~No Makefile.~~ Done.
 5. ~~Upload status 201.~~ Restored upstream 200 (DESIGN D4); tag pre-check removed (OPEN_QUESTIONS #9).
 6. ~~UI date filters.~~ Labelled as UTC.
-7. Forwarding failures after all retries are only logged (no durable outbox, no backfill).
+7. Partly mitigated: MQTT persistent session covers explorer outages beyond the HTTP retry window
+   (D12, `reports/mqtt/`). Still no backfill from the Tangle; broker+explorer both down loses the record.
 8. Explorer has no authentication. Acceptable for the demo; state it in the README.
 
 ---

@@ -39,6 +39,7 @@ class Message(Base):
     source: Mapped[str | None] = mapped_column(String(128), index=True)
     node: Mapped[str | None] = mapped_column(String(128))
     trace_id: Mapped[str | None] = mapped_column(String(128), index=True)   # groups related events (D8)
+    received_via: Mapped[str | None] = mapped_column(String(8))             # http | mqtt: first path to arrive (D12)
     submitted_at: Mapped[datetime] = mapped_column(DateTime, index=True)
     received_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 

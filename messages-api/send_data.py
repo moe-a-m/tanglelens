@@ -2,7 +2,7 @@
 Eclipse aeriOS IOTA Messages API -- extended for the Advanced Explorer.
 
 MODIFIED from eclipse-aerios/iota-messages-api@1ed089a (Apache-2.0, see LICENSE and ../NOTICE):
-forwards accepted blocks to the explorer, adds optional "type"/"source"/"trace",
+forwards accepted blocks to the explorer (HTTP, and MQTT if MQTT_HOST is set), adds optional "type"/"source"/"trace",
 adds blockId to the response and a /health route. Success status stays HTTP 200 as upstream.
 
 Backward compatible with the original:  POST /upload?node=<hornet-host>
@@ -25,6 +25,7 @@ import threading
 import time
 from datetime import datetime, timezone
 
+import paho.mqtt.client as mqtt
 import requests
 from flask import Flask, jsonify, request
 
@@ -32,10 +33,20 @@ EXPLORER_URL = os.getenv("EXPLORER_URL", "http://advanced-explorer:8090")
 DEFAULT_NODE = os.getenv("HORNET_NODE", "iota-hornet")
 FORWARD_RETRIES = int(os.getenv("FORWARD_RETRIES", "5"))
 TRACE_RE = re.compile(r"[A-Za-z0-9._:-]{1,128}")   # same rule as the explorer (path-safe trace ids)
+MQTT_HOST = os.getenv("MQTT_HOST", "")               # optional second delivery path (DESIGN D12)
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
+MQTT_TOPIC = os.getenv("MQTT_BLOCKS_TOPIC", "aerios/iota/blocks")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("messages-api")
 app = Flask(__name__)
+
+mqtt_client = None
+if MQTT_HOST:
+    mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="iota-messages-api")
+    mqtt_client.reconnect_delay_set(1, 30)
+    mqtt_client.connect_async(MQTT_HOST, MQTT_PORT)
+    mqtt_client.loop_start()
 
 
 def to_hex(text: str) -> str:
@@ -58,6 +69,18 @@ def forward_to_explorer(record: dict) -> None:
         time.sleep(delay)
         delay *= 2
     log.error("gave up forwarding %s; explorer can backfill via POST /api/ingest", record["block_id"])
+
+
+def publish_mqtt(record: dict) -> None:
+    """Publish the forwarded record to MQTT (QoS 1). Best effort: never fails or blocks the upload."""
+    if mqtt_client is None:
+        return
+    try:
+        info = mqtt_client.publish(MQTT_TOPIC, json.dumps(record), qos=1)
+        if info.rc != mqtt.MQTT_ERR_SUCCESS:
+            log.warning("MQTT publish of %s not sent now (rc=%s)", record["block_id"], info.rc)
+    except (ValueError, OSError) as e:
+        log.warning("MQTT publish of %s failed: %s", record["block_id"], e)
 
 
 @app.route("/upload", methods=["POST"])
@@ -105,6 +128,7 @@ def upload():
             "trace_id": trace,
         }
         threading.Thread(target=forward_to_explorer, args=(record,), daemon=True).start()
+        publish_mqtt(record)
 
     # Original response shape and HTTP 200 kept (upstream returns Flask's default 200 and
     # reports Hornet's status in the body), plus blockId for convenience. See docs/DESIGN.md D4.

@@ -15,6 +15,17 @@ services:
       interval: 3s
       retries: 20
 
+  # MQTT broker (DESIGN D12, UPV Idea #1). Demo settings: anonymous, no TLS.
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    container_name: mqtt-broker
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqtt-data:/mosquitto/data
+    ports:
+      - "${MQTT_PORT:-1883}:1883"
+    restart: unless-stopped
+
   advanced-explorer:
     build: ./explorer
     container_name: advanced-explorer
@@ -28,6 +39,7 @@ services:
       AUDIT_INTERVAL: "300"
       ALERT_TAGS: ${ALERT_TAGS-*.alert}          # tags that raise an application alert (DESIGN D10)
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}  # optional: POST each alert as JSON
+      MQTT_HOST: mqtt-broker                     # unset to disable MQTT (D12)
     ports:
       - "${EXPLORER_PORT:-8090}:8090"
     restart: unless-stopped
@@ -38,6 +50,7 @@ services:
     environment:
       EXPLORER_URL: http://advanced-explorer:8090
       HORNET_NODE: iota-hornet
+      MQTT_HOST: mqtt-broker
     ports:
       - "5555:5555"
     restart: unless-stopped
@@ -57,6 +70,7 @@ services:
 
 volumes:
   explorer-data:
+  mqtt-data:
 
 networks:
   default:

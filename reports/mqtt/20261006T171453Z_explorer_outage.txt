@@ -1,0 +1,22 @@
+# Explorer outage test (DESIGN D12): real Hornet, compose stack, 2026-10-06T17:14:53Z
+$ docker compose stop advanced-explorer
+ Container advanced-explorer Stopped 
+uploaded while explorer DOWN: 0x128cd31d7485048263d59db62b08de25e44f9c617afbf5f2ee398871fd14f1a6
+uploaded while explorer DOWN: 0x01a27cc100327b95d74c810ff0cefe15dc35b202b158e1ba65f374d7d4cdd273
+$ sleep 25   # longer than the HTTP forward retry window (0.5+1+2+4+8 s)
+--- messages-api log (HTTP forwarding):
+2026-10-06 17:15:01,856 WARNING explorer unreachable (attempt 5/5)
+2026-10-06 17:15:01,985 WARNING explorer unreachable (attempt 5/5)
+2026-10-06 17:15:09,860 ERROR gave up forwarding 0x128cd31d7485048263d59db62b08de25e44f9c617afbf5f2ee398871fd14f1a6; explorer can backfill via POST /api/ingest
+2026-10-06 17:15:09,985 ERROR gave up forwarding 0x01a27cc100327b95d74c810ff0cefe15dc35b202b158e1ba65f374d7d4cdd273; explorer can backfill via POST /api/ingest
+$ docker compose start advanced-explorer
+ Container advanced-explorer Started 
+--- explorer log (MQTT):
+2026-10-06 17:15:21,403 INFO explorer.mqtt connected to MQTT mqtt-broker:1883 (Success); subscribing to aerios/iota/blocks
+2026-10-06 17:15:21,416 INFO explorer.mqtt MQTT record 0x128cd31d74850482 created=True
+2026-10-06 17:15:21,422 INFO explorer.mqtt MQTT record 0x01a27cc100327b95 created=True
+(the original status loop failed: the test shell is zsh, which does not word-split an unquoted
+ $IDS, so curl got both ids in one malformed URL; a test-script error, not an explorer error.
+ Status re-queried below, 2026-10-06 ~17:16 UTC, same two blocks.)
+stored: 0x128cd31d74850482 received_via: mqtt status: confirmed content_match: True milestone: 1332
+stored: 0x01a27cc100327b95 received_via: mqtt status: confirmed content_match: True milestone: 1332

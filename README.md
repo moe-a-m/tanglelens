@@ -28,13 +28,20 @@ not only the development mock. The evidence is in [`reports/`](reports/) (see [E
 
 | Path | What it is |
 |---|---|
-| `messages-api/` | The aeriOS IOTA Messages API, extended. Same `POST /upload?node=` contract and HTTP 200 response as upstream. After Hornet accepts a block it forwards the blockId and the exact bytes it sent to the explorer (background thread, retries with backoff, never fails the upload). Adds optional `type` and `source` fields. |
+| `messages-api/` | The aeriOS IOTA Messages API, extended. Same `POST /upload?node=` contract and HTTP 200 response as upstream. After Hornet accepts a block it forwards the blockId and the exact bytes it sent to the explorer: over HTTP (background thread, retries with backoff) and over MQTT. Neither path can fail the upload. Adds optional `type`, `source` and `trace` fields. |
 | `explorer/` | FastAPI service: ingest, search, verification, traces, alerts, web UI. PostgreSQL in compose, SQLite for local runs. |
 | `mosquitto/` | MQTT broker config (Eclipse Mosquitto): a second delivery path for block records and a live feed of alerts. |
 | `iota-tangle/` | Vendored [eclipse-aerios/iota-tangle](https://github.com/eclipse-aerios/iota-tangle) @ `7803e5d` (Apache-2.0): Hornet 2.0 + coordinator + dashboard. |
 | `mock-hornet/` | Development stand-in for Hornet, shaped after real captures. **Not part of the solution and not used in the demo.** |
 | `tests/` | pytest: verification unit tests on real Hornet captures, API contract, Messages API, live smoke test. |
 | `scripts/` | `demo.sh` (end-to-end demo incl. tamper detection), `capture_hornet.sh` and `measure_confirmation.py` (evidence capture). |
+| `docs/` | `PITCH.md` (pitch and demo script), `DESIGN.md` (every design decision with its basis), `VERIFICATION_LOG.md`, `OPEN_QUESTIONS.md`, `DEPENDENCIES.md`, `screenshots/`, `references/` (brief, aeriOS notes, upstream originals). |
+
+## Screenshots
+
+| Confirmed message | Tampered copy vs. the Tangle | Trace timeline and alerts |
+|---|---|---|
+| ![Confirmed](docs/screenshots/1_confirmed_message.png) | ![Mismatch](docs/screenshots/2_tampered_message.png) | ![Timeline](docs/screenshots/3_trace_timeline_and_alerts.png) |
 
 ## Run it
 
@@ -65,8 +72,8 @@ To stop: `make down`. To wipe the tangle: `cd iota-tangle/docker/main && sudo ./
 
 | Command | What it does |
 |---|---|
-| `make up` / `make down` | Start / stop explorer, PostgreSQL and Messages API (joins the tangle's `iota-net` network) |
-| `make demo` | Publish aeriOS-style messages, show pending → confirmed, search, tamper with the DB and catch it |
+| `make up` / `make down` | Start / stop explorer, PostgreSQL, MQTT broker and Messages API (joins the tangle's `iota-net` network) |
+| `make demo` | Publish aeriOS-style trust messages, show pending → confirmed, search by block id / date / tag, follow a trace timeline and its alerts, then tamper with the DB and catch it. The demo data is illustrative: aeriOS publishes no official message schema, so it uses Trust Manager vocabulary (`docs/references/aerios_trust_notes.md`) |
 | `make test` | Full test suite in a container, on SQLite and on the compose PostgreSQL; summary saved in `reports/tests/` |
 | `make smoke-real` | Live test: 3 messages through the Messages API to the real node must reach `confirmed` and be findable by block id, date and tag |
 | `make up-mock` / `make e2e-mock` | Development only: fake Hornet on its own network (`iota-mock-net`) + stack, and the same live test against it. The tangle may keep running; only one explorer stack at a time (`make down` first) |
@@ -80,8 +87,8 @@ Same request as the upstream aeriOS Messages API, plus three optional fields (`t
 
 ```bash
 curl -s 'http://localhost:5555/upload?node=iota-hornet' -H 'Content-Type: application/json' -d '{
-  "tag": "trust.score", "type": "trust.update", "source": "aeriOS/IE-1", "trace": "ie-1-2026-10-06",
-  "message": {"ie": "IE-1", "score": 0.91}}'
+  "tag": "trust.score", "source": "aeriOS/trust-manager", "trace": "domain-1-ie-1",
+  "message": {"domain_name": "domain-1", "ie": "ie-1", "trust_score": 0.82}}'
 ```
 
 Response, HTTP 200 as upstream; Hornet's own status is in `status_code` (201 = accepted):
@@ -142,10 +149,10 @@ The Messages API publishes every accepted block record to `aerios/iota/blocks`, 
 publishes every alert to `aerios/explorer/alerts` (QoS 1, broker on port 1883). The explorer also
 *subscribes* to `aerios/iota/blocks` with a persistent session, so records reach it on two
 independent paths (HTTP and MQTT). Whichever arrives first creates the row; `received_via` records
-which one did. (In practice MQTT usually wins, because the publish happens inline and the HTTP
+which one did. In practice MQTT usually wins, because the publish happens inline and the HTTP
 forward runs in a background thread. The HTTP forward is still sent every time, and it is the
-only path when MQTT is off.) If the explorer is down for longer than the HTTP retry window, the broker keeps the
-records and delivers them when it comes back (tested live: `reports/mqtt/`).
+only path when MQTT is off. If the explorer is down for longer than the HTTP retry window, the
+broker keeps the records and delivers them when it comes back (tested live: `reports/mqtt/`).
 
 Watch the live feed: `make mqtt-watch`. Set `MQTT_HOST` empty in `docker-compose.yml` to switch MQTT off.
 
@@ -165,8 +172,9 @@ The full list with the basis for each is in [`docs/DESIGN.md`](docs/DESIGN.md). 
 
 - **Solid is not the same as confirmed.** A block is solid almost immediately, but it is only final once a milestone references it. Reporting the two separately is what makes the status trustworthy.
 - **The Messages API forwards the exact bytes it sent**, so content verification compares like with like rather than re-encoding JSON (key order or whitespace changes would cause false mismatches).
-- **Enrichment metadata (`type`, `source`, timestamps) lives only in the explorer**, so the on-chain payload format and the `/upload` contract of aeriOS are unchanged.
-- **Explorer downtime never loses or blocks an upload.** The upload succeeds regardless; forwarding retries, and ingest is idempotent.
+- **Enrichment metadata (`type`, `source`, `trace`, timestamps) lives only in the explorer**, so the on-chain payload format and the `/upload` contract of aeriOS are unchanged.
+- **Explorer downtime never blocks or fails an upload.** The upload succeeds regardless. Records reach the explorer over two paths (HTTP with retries, MQTT with a persistent session), and ingest is idempotent, so duplicates are harmless.
+- **Alerts are configuration, not invented semantics.** Integrity alerts follow the verification states; which tags count as critical is set with `ALERT_TAGS`.
 - **Only full block ids go to Hornet.** Hornet zero-pads short ids instead of rejecting them, so ingest validates the format.
 
 ## Evidence
@@ -177,6 +185,8 @@ The full list with the basis for each is in [`docs/DESIGN.md`](docs/DESIGN.md). 
 | `reports/hornet/*_timing/` | Attach → milestone timing measurement |
 | `reports/tests/` | pytest summaries per commit (SQLite, PostgreSQL, live smoke test) |
 | `reports/demo/`, `reports/smoke/` | Demo runs and smoke test records against the real node |
+| `reports/mqtt/` | Explorer outage test: records delivered over MQTT after the HTTP forward gave up |
+| `reports/clean_clone/` | Fresh-clone runs of `make up`, `make test`, `make smoke-real`, `make demo` and the mock path |
 | `reports/env.txt` | OS, Docker, Compose and image digests that produced the results |
 | [`docs/VERIFICATION_LOG.md`](docs/VERIFICATION_LOG.md) | Every change to verification or ingest, with its evidence, failed attempts included |
 

@@ -26,6 +26,8 @@ services:
       HORNET_URL: ${HORNET_URL:-http://iota-hornet:14265}
       VERIFY_INTERVAL: "3"
       AUDIT_INTERVAL: "300"
+      ALERT_TAGS: ${ALERT_TAGS-*.alert}          # tags that raise an application alert (DESIGN D10)
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}  # optional: POST each alert as JSON
     ports:
       - "${EXPLORER_PORT:-8090}:8090"
     restart: unless-stopped

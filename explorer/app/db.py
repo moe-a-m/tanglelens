@@ -74,6 +74,23 @@ class Validation(Base):
     message: Mapped[Message] = relationship(back_populates="validations")
 
 
+class Alert(Base):
+    """Notification of a critical event (DESIGN D10). Append-only except acknowledged_at."""
+    __tablename__ = "alerts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    kind: Mapped[str] = mapped_column(String(16))                 # integrity | application
+    status: Mapped[str] = mapped_column(String(32))               # message status when raised
+    previous_status: Mapped[str | None] = mapped_column(String(32))
+    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id"), index=True)
+    block_id: Mapped[str] = mapped_column(String(80))
+    tag: Mapped[str] = mapped_column(String(128))
+    trace_id: Mapped[str | None] = mapped_column(String(128))
+    detail: Mapped[str | None] = mapped_column(Text)
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
 def init_db() -> None:
     Base.metadata.create_all(engine)
     add_missing_columns()

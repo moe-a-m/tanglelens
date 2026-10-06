@@ -13,7 +13,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 
-from .db import Message, SessionLocal, init_db, utcnow
+from . import alerts
+from .db import Alert, Message, SessionLocal, init_db, utcnow
 from .verify import RETRYABLE, Hornet, sha256_hex, verify_message
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -147,6 +148,11 @@ def ingest(item: IngestIn):
         except IntegrityError:
             s.rollback()
             return {"block_id": item.block_id, "created": False}
+        if alerts.tag_is_critical(m.tag):                                    # application alert (D10)
+            alert = alerts.new_alert(m, "application", None, f"tag {m.tag!r} matches ALERT_TAGS")
+            s.add(alert)
+            s.commit()
+            alerts.notify(alert)
     return {"block_id": item.block_id, "created": True}
 
 
@@ -222,8 +228,34 @@ def verify_now(block_id: str):
         return serialize(m, with_history=True)
 
 
+# ---------- alerts (DESIGN D10) ----------
+@app.get("/api/alerts")
+def list_alerts(since_id: int = Query(0, ge=0, description="only alerts with a larger id (for polling)"),
+                unacknowledged: bool = False, limit: int = Query(50, ge=1, le=500)):
+    """Newest first. `open` counts all unacknowledged alerts."""
+    with SessionLocal() as s:
+        q = select(Alert).where(Alert.id > since_id)
+        if unacknowledged:
+            q = q.where(Alert.acknowledged_at.is_(None))
+        rows = s.scalars(q.order_by(Alert.id.desc()).limit(limit)).all()
+        open_n = s.scalar(select(func.count()).select_from(Alert).where(Alert.acknowledged_at.is_(None)))
+        return {"open": open_n, "items": [alerts.to_dict(a) for a in rows]}
+
+
+@app.post("/api/alerts/{alert_id}/ack")
+def ack_alert(alert_id: int):
+    with SessionLocal() as s:
+        a = s.get(Alert, alert_id)
+        if not a:
+            raise HTTPException(404, f"No alert {alert_id}")
+        if a.acknowledged_at is None:
+            a.acknowledged_at = utcnow()
+            s.commit()
+        return alerts.to_dict(a)
+
+
 # ---------- traces: related events as a verified timeline (DESIGN D8/D9) ----------
-PROBLEMS = {"content_mismatch", "not_found", "conflicting"}
+PROBLEMS = alerts.PROBLEMS
 
 
 def _trace_summary(trace_id: str, by_status: dict, first, last) -> dict:

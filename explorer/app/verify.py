@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 
 import httpx
 
+from . import alerts
 from .db import Message, Validation, utcnow
 
 HORNET_URL = os.getenv("HORNET_URL", "http://iota-hornet:14265")
@@ -108,6 +109,7 @@ def compare_content(msg: Message, block: dict) -> tuple[bool, bool, list[str]]:
 
 def verify_message(session, msg: Message, hornet: Hornet) -> Validation:
     v = Validation(message_id=msg.id, checked_at=utcnow())
+    previous_status = msg.status
     try:
         meta = hornet.block_metadata(msg.block_id)
         if meta is None:
@@ -149,6 +151,12 @@ def verify_message(session, msg: Message, hornet: Hornet) -> Validation:
             msg.milestone_time = hornet.milestone_time(v.referenced_by_milestone_index)
 
     session.add(v)
+    alert = None
+    if v.status in alerts.PROBLEMS and v.status != previous_status:     # transitions only (D10)
+        alert = alerts.new_alert(msg, "integrity", previous_status, v.detail)
+        session.add(alert)
     session.commit()
+    if alert:
+        alerts.notify(alert)
     log.info("verified %s -> %s", msg.block_id[:18], v.status)
     return v

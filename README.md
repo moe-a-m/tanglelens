@@ -96,6 +96,8 @@ Interactive docs: http://localhost:8090/docs
 | `GET /api/traces` | Traces (related events sharing a `trace` id): event count, first/last time, status counts, `verified` (all confirmed), `problems`. |
 | `GET /api/traces/{trace_id}` | Timeline: the trace's events in chronological order, each with its verification status, milestone and milestone time. |
 | `POST /api/traces/{trace_id}/verify` | Re-verify every event of the trace against its block id on Hornet now. |
+| `GET /api/alerts` | Alerts, newest first, with `open` = unacknowledged count. `since_id` for polling, `unacknowledged=true`. |
+| `POST /api/alerts/{id}/ack` | Acknowledge an alert (idempotent). |
 | `GET /api/tags` | Tags with counts and last-seen time. |
 | `GET /api/stats` | Counts per verification status. |
 | `GET /api/health` | Explorer and Hornet node status. |
@@ -126,6 +128,16 @@ Measured on the real node: blocks are solid within 20 ms and referenced by a mil
 retryable messages every 3 s (less than one milestone interval), up to 60 times. A second loop
 re-audits every message every 5 minutes, so tampering after confirmation is still caught. Every
 check is appended to an audit trail (`validations` table), never overwritten.
+
+## Alerts
+
+Two kinds of alert are appended to the `alerts` table, shown in the UI and optionally POSTed to
+`ALERT_WEBHOOK_URL`:
+
+- **integrity**: a check moved a message *into* `content_mismatch`, `not_found` or `conflicting`. Later
+  audits that find the same problem don't repeat the alert.
+- **application**: a message whose tag matches `ALERT_TAGS` was ingested. Which events count as
+  critical is configuration (`*.alert` in compose), not hard-coded.
 
 ## Design decisions
 
@@ -159,6 +171,8 @@ The full list with the basis for each is in [`docs/DESIGN.md`](docs/DESIGN.md). 
 | `DATABASE_URL` | explorer | `sqlite:///./explorer.db` (compose sets PostgreSQL) |
 | `HORNET_URL` | explorer | `http://iota-hornet:14265` |
 | `VERIFY_INTERVAL` / `AUDIT_INTERVAL` / `MAX_CHECKS` | explorer | `3` / `300` seconds / `60` |
+| `ALERT_TAGS` | explorer | compose: `*.alert` (comma list of shell-style globs; a matching tag raises an application alert; empty = off) |
+| `ALERT_WEBHOOK_URL` | explorer | empty (if set, every alert is POSTed there as JSON, best effort) |
 
 ## Limitations
 

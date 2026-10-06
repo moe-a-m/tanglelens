@@ -4,7 +4,7 @@
 |---|---|---|---|
 | 1 | Submission deadline is "07 Oct 2026, 14:59" on TAIKAI. In which time zone? | Organizers (TAIKAI/Discord) | **Spain time** (user, 2026-10-06): 07 Oct 2026 14:59 CEST = **12:59 UTC**. |
 | 2 | Judging criteria | Organizers | **Partial:** the UPV challenge slides (`docs/references/IOTA Decentralized…pdf`, p.6) list four ideas by "growing complexity" (#1 MQTT, #2 Explorer UI, #3 IoT traceability of related messages, #4 Incident Explorer: timeline, per-event BlockID verification, alerts) and say: "The jury will bear in consideration the level of complexity of the final product pitched on Thursday." The pitch is therefore on Thu 08 Oct. A full rubric is still open. |
-| 3 | Submission format (repo link, video, slides?) | Organizers | Open. The user is gathering this from TAIKAI/Discord. |
+| 3 | Submission format (repo link, video, slides?) | Organizers | **Slides** (user decision, 2026-10-07), plus the public repository required by the Rules (licence file). |
 | 4 | Do existing aeriOS callers depend on `/upload` returning HTTP 200? | User | Answered by the user on 2026-10-06: keep upstream 200; Hornet's code stays in the body as `status_code`. |
 | 5 | Port 8090 is already used by another service on the dev machine (freshrss). The explorer's host port needs to be configurable. | — | Make it configurable via `EXPLORER_PORT` (default stays 8090). |
 | 6 | Which licence must the repository use? | Organizers | **Apache-2.0 is accepted** (Rafa Vaño, UPV, on Discord, 2026-10-06 16:18). The Rules say repos without the correct licence file are ineligible, so the root `LICENSE` is Apache-2.0. |

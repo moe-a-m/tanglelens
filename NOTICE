@@ -1,0 +1,17 @@
+IOTA Advanced Explorer for Eclipse aeriOS (Veles Hack 2026, Challenge 2)
+
+This project includes software from the Eclipse aeriOS project, licensed under the
+Apache License, Version 2.0 (see the LICENSE file in each directory below):
+
+1. eclipse-aerios/iota-tangle, commit 7803e5d
+   https://github.com/eclipse-aerios/iota-tangle
+   Location: iota-tangle/
+   Modified: iota-tangle/docker/main/bootstrap.sh and cleanup.sh call
+   "docker compose" (Compose v2) instead of "docker-compose" (v1).
+
+2. eclipse-aerios/iota-messages-api, commit 1ed089a
+   https://github.com/eclipse-aerios/iota-messages-api
+   Location: messages-api/ (modified copy); unmodified original kept in
+   docs/references/upstream/iota-messages-api@1ed089a/
+   Modified: send_data.py forwards every accepted block to the Advanced Explorer,
+   adds optional "type"/"source" fields, validates tag length, returns blockId.

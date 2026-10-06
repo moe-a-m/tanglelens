@@ -77,8 +77,8 @@ pre{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;paddi
   <label>Block ID or prefix<input id="f-id" placeholder="0x…"></label>
   <label>Tag<input id="f-tag" list="taglist" placeholder="trust.score or trust*"></label>
   <datalist id="taglist"></datalist>
-  <label>From<input id="f-from" type="datetime-local"></label>
-  <label>To<input id="f-to" type="datetime-local"></label>
+  <label>From (UTC)<input id="f-from" type="datetime-local" title="Interpreted as UTC, like every time shown on this page"></label>
+  <label>To (UTC)<input id="f-to" type="datetime-local" title="Interpreted as UTC, inclusive to the end of the minute"></label>
   <label>Source<input id="f-src" placeholder="aeriOS/IE-1" style="width:130px"></label>
   <button type="submit">Search</button>
   <button type="button" class="quiet" id="reset">Clear</button>

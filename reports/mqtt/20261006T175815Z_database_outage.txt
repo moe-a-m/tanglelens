@@ -1,0 +1,18 @@
+# Database outage test (code review finding: MQTT must not ack unstored records), 2026-10-06T17:58:15Z
+$ docker compose stop explorer-db
+ Container explorer-db Stopped 
+uploaded while DB DOWN: 0x6fad2989e638af7273d33f98cecc5106e72c1465df00111b21d5541a66db1937
+$ sleep 25
+$ docker compose start explorer-db
+ Container explorer-db Started 
+--- messages-api (HTTP):
+2026-10-06 17:58:19,771 WARNING explorer answered 500: Internal Server Error
+2026-10-06 17:58:23,789 WARNING explorer answered 500: Internal Server Error
+2026-10-06 17:58:31,790 ERROR gave up forwarding 0x6fad2989e638af7273d33f98cecc5106e72c1465df00111b21d5541a66db1937; explorer can backfill v
+--- explorer (MQTT):
+2026-10-06 17:58:17,245 ERROR explorer.mqtt failed to store MQTT record (retry in 2s)
+2026-10-06 17:58:19,261 ERROR explorer.mqtt failed to store MQTT record (retry in 4s)
+2026-10-06 17:58:23,282 ERROR explorer.mqtt failed to store MQTT record (retry in 8s)
+2026-10-06 17:58:31,295 ERROR explorer.mqtt failed to store MQTT record (retry in 15s)
+2026-10-06 17:58:46,317 INFO explorer.mqtt MQTT record 0x6fad2989e638af72 created=True
+stored: 0x6fad2989e638af72 received_via: mqtt status: confirmed

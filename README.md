@@ -209,7 +209,7 @@ The full list with the basis for each is in [`docs/DESIGN.md`](docs/DESIGN.md). 
 ## Limitations
 
 - **No authentication** on the explorer or the Messages API. Fine for a local demo, not for production.
-- **Delivery to the explorer is not fully durable.** HTTP forwarding retries for ~15 s. MQTT covers longer explorer outages through the broker's persistent session, but a message is lost if the broker is *also* unreachable when it is published, or if the explorer's database fails while it handles that message. There is no backfill from the Tangle yet; ingest is idempotent, so one can be added safely.
+- **Delivery to the explorer is not fully durable.** HTTP forwarding retries for ~15 s. MQTT covers longer explorer outages through the broker's persistent session, but a message is lost if the broker is *also* unreachable when it is published. If the explorer cannot store a record (e.g. its database is down), MQTT keeps retrying for ~45 s and otherwise leaves it unacknowledged for redelivery on reconnect (tested live: `reports/mqtt/`). There is no backfill from the Tangle yet; ingest is idempotent, so one can be added safely.
 - **MQTT broker runs with demo settings**: anonymous access, no TLS.
 - **Public default keys.** The tangle's coordinator and dashboard keys are the upstream defaults published in the repo. Change them for anything beyond a local demo (see `iota-tangle/README.md`).
 - **Single node.** On this one-node tangle Hornet reports `isHealthy: false` (and `/health` 503) although milestones flow normally; the explorer shows the node as reachable and does not depend on that flag. `conflicting` and `not_solid` were never observed on the real node; they are covered by tests derived from real responses.

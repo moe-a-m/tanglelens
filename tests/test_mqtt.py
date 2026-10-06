@@ -59,3 +59,47 @@ def test_alerts_are_published_to_mqtt(monkeypatch):
 def test_mqtt_disabled_by_default():
     assert mqtt.start(main.store, main.IngestIn) is None                         # MQTT_HOST unset in tests
     mqtt.publish_alert({"id": 1})                                                # no client: no error
+
+
+# ---------- manual acknowledgement (code review: never ack a record that was not stored) ----------
+class AckClient:
+    def __init__(self):
+        self.acks = []
+
+    def ack(self, mid, qos):
+        self.acks.append((mid, qos))
+
+
+class Msg:
+    def __init__(self, payload, mid=7, qos=1):
+        self.payload, self.mid, self.qos = payload, mid, qos
+
+
+def test_ack_only_after_store_succeeds(monkeypatch):
+    monkeypatch.setattr(mqtt.time, "sleep", lambda s: None)
+    calls = {"n": 0}
+
+    def flaky_store(item, via):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise RuntimeError("database restarting")
+        return main.store(item, via=via)
+    c = AckClient()
+    assert mqtt.deliver(c, Msg(json.dumps(REC).encode()), flaky_store, main.IngestIn) is True
+    assert calls["n"] == 3 and c.acks == [(7, 1)] and via(REC["block_id"]) == "mqtt"
+
+
+def test_store_keeps_failing_leaves_message_unacked(monkeypatch):
+    slept = []
+    monkeypatch.setattr(mqtt.time, "sleep", slept.append)
+
+    def broken_store(item, via):
+        raise RuntimeError("database down")
+    c = AckClient()
+    assert mqtt.deliver(c, Msg(json.dumps(REC).encode()), broken_store, main.IngestIn) is False
+    assert c.acks == [] and slept == list(mqtt.STORE_RETRY_DELAYS) and sum(slept) < 90 * 0.6
+
+
+def test_invalid_record_is_acked_and_dropped(monkeypatch):
+    c = AckClient()
+    assert mqtt.deliver(c, Msg(b"not json"), main.store, main.IngestIn) is True and c.acks == [(7, 1)]

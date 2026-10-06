@@ -19,3 +19,5 @@ Licences come from each package's installed metadata (`License-Expression`).
 | Flask | 3.1.3 | BSD-3-Clause | Messages API (same framework as upstream) |
 | requests | 2.34.2 | Apache-2.0 | Messages API → Hornet / explorer (same as upstream) |
 | pytest | 9.1.1 | MIT | Test runner (tests image only) |
+| eclipse-mosquitto (image) | 2 → mosquitto 2.1.2, `sha256:38c0da4f…` | EPL-2.0 OR EDL-1.0 (Eclipse Mosquitto project; not re-checked from the image) | MQTT broker for UPV Idea #1 (DESIGN D12) |
+| paho-mqtt | 2.1.0 | EPL-2.0 OR BSD-3-Clause | MQTT client in the Messages API (publish) and the explorer (subscribe, alerts) (DESIGN D12) |

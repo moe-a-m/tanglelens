@@ -38,7 +38,8 @@ def test_not_found_alerts_but_error_does_not(session):
     m = make_message(session)
     verify_message(session, m, fake_hornet(fail=503))               # error: no alert
     verify_message(session, m, fake_hornet(meta=None))              # not_found: alert
-    assert alert_rows() == [("integrity", "not_found", "error")]
+    # previous_status is the last real outcome, not the transient error (code review fix)
+    assert alert_rows() == [("integrity", "not_found", "unverified")]
 
 
 def test_conflicting_alerts(session):
@@ -105,3 +106,50 @@ def test_webhook_receives_alert_and_failures_do_not_raise(session, monkeypatch):
     m2 = make_message(session, block_id="0x" + "e" * 64)
     v = verify_message(session, m2, fake_hornet(meta=None))       # must not raise
     assert v.status == "not_found" and len(alert_rows()) == 2
+
+
+# ---------- code review: no duplicate integrity alerts ----------
+def test_hornet_error_between_two_mismatches_does_not_repeat_the_alert(session):
+    m = make_message(session)
+    verify_message(session, m, fake_hornet())                       # confirmed
+    m.payload = {"probe": "forged"}
+    session.commit()
+    verify_message(session, m, fake_hornet())                       # content_mismatch -> alert
+    verify_message(session, m, fake_hornet(fail=503))               # transient error
+    verify_message(session, m, fake_hornet())                       # content_mismatch again: no new alert
+    assert alert_rows() == [("integrity", "content_mismatch", "confirmed")]
+
+
+def test_error_then_new_problem_still_alerts(session):
+    m = make_message(session)
+    verify_message(session, m, fake_hornet())                       # confirmed
+    verify_message(session, m, fake_hornet(fail=503))               # error
+    verify_message(session, m, fake_hornet(meta=None))              # not_found: a real change
+    assert alert_rows() == [("integrity", "not_found", "confirmed")]
+
+
+def test_concurrent_checks_raise_one_alert(db_name):
+    """Two workers verify the same tampered message at once (audit loop + POST /verify)."""
+    if db_name != "postgresql":
+        pytest.skip("row locking is a PostgreSQL feature; compose runs PostgreSQL")
+    import threading
+    import time as _t
+    with SessionLocal() as s:
+        m = make_message(s, payload={"probe": "forged"})
+        mid = m.id
+
+    def run():
+        h = fake_hornet()
+        orig = h.block
+
+        def slow_block(bid):
+            _t.sleep(0.3)
+            return orig(bid)
+        h.block = slow_block
+        with SessionLocal() as s:
+            from app.db import Message
+            verify_message(s, s.get(Message, mid), h)
+    threads = [threading.Thread(target=run) for _ in range(2)]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
+    assert alert_rows() == [("integrity", "content_mismatch", "unverified")]

@@ -17,6 +17,7 @@ import os
 from datetime import datetime, timezone
 
 import httpx
+from sqlalchemy import select
 
 from . import alerts
 from .db import Message, Validation, utcnow
@@ -115,8 +116,17 @@ def compare_content(msg: Message, block: dict) -> tuple[bool, bool, list[str]]:
 
 
 def verify_message(session, msg: Message, hornet: Hornet) -> Validation:
+    # Lock the row (PostgreSQL; SQLite ignores it) so concurrent checks of the same message from the
+    # verifier loop, the audit loop and the API run one after another and see each other's status.
+    session.refresh(msg, with_for_update=True)
     v = Validation(message_id=msg.id, checked_at=utcnow())
     previous_status = msg.status
+    if previous_status == "error":
+        # A transient Hornet error is not a state change: compare with the last real outcome,
+        # so problem -> error -> same problem does not raise a second alert.
+        previous_status = session.scalar(
+            select(Validation.status).where(Validation.message_id == msg.id, Validation.status != "error")
+            .order_by(Validation.id.desc()).limit(1)) or "unverified"     # never checked successfully
     try:
         meta = hornet.block_metadata(msg.block_id)
         if meta is None:

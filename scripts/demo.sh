@@ -20,6 +20,13 @@ publish() {   # publish TAG SOURCE TRACE MESSAGE_JSON -> prints blockId
     | python3 -c 'import sys,json; print(json.load(sys.stdin)["blockId"])'
 }
 count() { python3 -c 'import sys,json; print(json.load(sys.stdin)["total"])'; }
+wait_stored() {   # the record reaches the explorer asynchronously (HTTP thread / MQTT): wait up to 10 s
+  for _ in $(seq 1 40); do
+    [ "$(curl -s -o /dev/null -w '%{http_code}' "$EXP/api/messages/$1")" = 200 ] && return 0
+    sleep 0.25
+  done
+  echo "  explorer has not stored $1 after 10 s; check 'make logs'" >&2; return 1
+}
 
 say "1. Publishing through the extended Messages API (same /upload contract as aeriOS)"
 B1=$(publish trust.reliability aeriOS/self-awareness "$IE1" \
@@ -39,7 +46,7 @@ printf '  %s  trust.reliability     (%s)\n  %s  trust.score           (%s)\n  %s
 say "2. Verify the last trust score on demand, right after insertion"
 echo "  (solid within ~20 ms; a milestone references it after 0.3-5 s, reports/hornet/README.md H11:"
 echo "   'pending' if no milestone has arrived yet, otherwise already 'confirmed')"
-sleep 0.5
+wait_stored "$B4"
 curl -s -X POST "$EXP/api/messages/$B4/verify" | python3 -c '
 import sys,json; v=json.load(sys.stdin)["verification"]
 print("  status:", v["status"], "| solid:", v["is_solid"], "| milestone:", v["milestone_index"], "| content match:", v["content_match"])'
@@ -48,6 +55,7 @@ say "3. After the next milestones (expect confirmed)"
 sleep 8; curl -s "$EXP/api/stats"; echo
 echo "  delivery path that arrived first (HTTP forward or MQTT, the other is a no-op):"
 for B in $B1 $B2 $B3 $B4 $B5; do
+  wait_stored "$B"
   curl -s "$EXP/api/messages/$B" | python3 -c 'import sys,json; d=json.load(sys.stdin); print("   ", d["block_id"][:18]+"…", d["tag"], "->", d["received_via"])'
 done
 

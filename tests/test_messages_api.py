@@ -123,7 +123,7 @@ def test_trace_is_forwarded_not_written_on_chain(calls):
     assert bytes.fromhex(on_chain["tag"][2:]).decode() == BODY["tag"]
 
 
-@pytest.mark.parametrize("bad", ["", "x" * 129, 42, {"a": 1}])
+@pytest.mark.parametrize("bad", ["", "x" * 129, 42, {"a": 1}, "a/b", "a b", "ü"])
 def test_invalid_trace_is_rejected_before_hornet(calls, bad):
     assert client.post("/upload", json={**BODY, "trace": bad}).status_code == 400
     assert calls["hornet"] == []

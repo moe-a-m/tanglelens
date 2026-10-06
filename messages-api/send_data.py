@@ -20,6 +20,7 @@ import codecs
 import json
 import logging
 import os
+import re
 import threading
 import time
 from datetime import datetime, timezone
@@ -30,6 +31,7 @@ from flask import Flask, jsonify, request
 EXPLORER_URL = os.getenv("EXPLORER_URL", "http://advanced-explorer:8090")
 DEFAULT_NODE = os.getenv("HORNET_NODE", "iota-hornet")
 FORWARD_RETRIES = int(os.getenv("FORWARD_RETRIES", "5"))
+TRACE_RE = re.compile(r"[A-Za-z0-9._:-]{1,128}")   # same rule as the explorer (path-safe trace ids)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("messages-api")
@@ -67,8 +69,8 @@ def upload():
         return jsonify(error="body must contain 'tag' and 'message'"), 400
 
     trace = body.get("trace")
-    if trace is not None and (not isinstance(trace, str) or not 0 < len(trace) <= 128):
-        return jsonify(error="'trace' must be a non-empty string of at most 128 characters"), 400
+    if trace is not None and not (isinstance(trace, str) and TRACE_RE.fullmatch(trace)):
+        return jsonify(error="'trace' must be 1-128 characters from A-Z a-z 0-9 . _ : -"), 400
     tag = body["tag"]
     message = json.dumps(body["message"])          # same encoding as the original API
     tag_hex, data_hex = to_hex(tag), to_hex(message)

@@ -172,8 +172,9 @@ def test_trace_id_stored_and_searchable():
     assert client.get(f"/api/messages/{bid(13)}").json()["trace_id"] is None
 
 
-def test_trace_id_longer_than_128_is_rejected():
-    r = client.post("/api/ingest", json={"block_id": bid(14), "tag": "t", "message": {}, "trace_id": "x" * 129})
+@pytest.mark.parametrize("bad", ["x" * 129, "", "a/b", "a b", "a?b"])
+def test_trace_id_must_be_path_safe_and_at_most_128(bad):
+    r = client.post("/api/ingest", json={"block_id": bid(14), "tag": "t", "message": {}, "trace_id": bad})
     assert r.status_code == 422
 
 

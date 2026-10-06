@@ -70,7 +70,7 @@ To stop: `make down`. To wipe the tangle: `cd iota-tangle/docker/main && sudo ./
 ## Publishing a message
 
 Same request as the upstream aeriOS Messages API, plus three optional fields (`type`, `source`, and
-`trace`, an id that groups related events of one flow, user or sensor; at most 128 characters):
+`trace`, an id that groups related events of one flow, user or sensor; 1–128 characters from `A-Z a-z 0-9 . _ : -`):
 
 ```bash
 curl -s 'http://localhost:5555/upload?node=iota-hornet' -H 'Content-Type: application/json' -d '{

@@ -29,6 +29,8 @@ hornet = Hornet()
 # Full 32-byte id as Hornet returns it. Hornet zero-pads shorter ids instead of rejecting
 # them (reports/hornet/README.md H6), so anything else would be verified against the wrong block.
 BLOCK_ID_PATTERN = r"^0x[0-9a-f]{64}$"
+# Trace ids appear in URL paths (/api/traces/{trace_id}), so keep them path-safe (DESIGN D8).
+TRACE_PATTERN = r"^[A-Za-z0-9._:-]{1,128}$"
 
 
 class IngestIn(BaseModel):
@@ -41,7 +43,7 @@ class IngestIn(BaseModel):
     submitted_at: datetime | None = None
     message_type: str | None = None
     source: str | None = None
-    trace_id: str | None = Field(None, max_length=128)
+    trace_id: str | None = Field(None, pattern=TRACE_PATTERN)
 
 
 def _to_hex(text: str) -> str:

@@ -26,8 +26,13 @@ hornet = Hornet()
 
 
 # ---------- schemas ----------
+# Full 32-byte id as Hornet returns it. Hornet zero-pads shorter ids instead of rejecting
+# them (reports/hornet/README.md H6), so anything else would be verified against the wrong block.
+BLOCK_ID_PATTERN = r"^0x[0-9a-f]{64}$"
+
+
 class IngestIn(BaseModel):
-    block_id: str
+    block_id: str = Field(pattern=BLOCK_ID_PATTERN)
     tag: str
     message: Any
     tag_hex: str | None = None

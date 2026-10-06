@@ -46,6 +46,10 @@ print("  status:", v["status"], "| solid:", v["is_solid"], "| milestone:", v["mi
 
 say "3. After the next milestones (expect confirmed)"
 sleep 8; curl -s "$EXP/api/stats"; echo
+echo "  delivery path that arrived first (HTTP forward or MQTT, the other is a no-op):"
+for B in $B1 $B2 $B3 $B4 $B5; do
+  curl -s "$EXP/api/messages/$B" | python3 -c 'import sys,json; d=json.load(sys.stdin); print("   ", d["block_id"][:18]+"…", d["tag"], "->", d["received_via"])'
+done
 
 say "4. Search by the brief's three keys, plus metadata"
 FROM=$(date -u -d '-2 minutes' +%Y-%m-%dT%H:%M:%SZ) TO=$(date -u -d '+1 minute' +%Y-%m-%dT%H:%M:%SZ)

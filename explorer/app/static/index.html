@@ -221,6 +221,7 @@ async function showDetail(id){
       <dt>Source</dt><dd>${esc(m.source || "—")}</dd>
       <dt>Trace</dt><dd>${m.trace_id ? `<a href="#" class="link" data-trace="${esc(m.trace_id)}">${esc(m.trace_id)}</a> (view timeline)` : "—"}</dd>
       <dt>Submitted via</dt><dd>${esc(m.node || "—")}</dd>
+      <dt>Received via</dt><dd>${m.received_via === "mqtt" ? "MQTT (aerios/iota/blocks)" : m.received_via === "http" ? "HTTP forward" : "—"}</dd>
       <dt>Submitted</dt><dd>${fmt(m.submitted_at)} UTC</dd>
       <dt>Milestone</dt><dd>${v.milestone_index ?? "—"}${v.milestone_time ? " ("+fmt(v.milestone_time)+" UTC)" : ""}</dd>
       <dt>Ledger state</dt><dd>${esc(v.ledger_inclusion_state || "—")}</dd>

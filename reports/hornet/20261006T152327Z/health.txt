@@ -1,0 +1,9 @@
+# captured: 2026-10-06T15:24:15Z
+# command: curl -sS -i http://localhost:14265/health
+# ---- raw response ----
+HTTP/1.1 503 Service Unavailable
+Vary: Origin
+Vary: Accept-Encoding
+Date: Tue, 06 Oct 2026 15:24:15 GMT
+Content-Length: 0
+

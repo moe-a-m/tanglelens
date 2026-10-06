@@ -1,0 +1,4 @@
+hornet=http://localhost:14265 n=20 referenced=20 poll=0.25s jitter=0..6.0s
+referenced_s min=0.256 median=3.307 mean=3.179 max=5.072
+first_solid_s max=0.019
+submit_status=[201] inclusion_states=['noTransaction']

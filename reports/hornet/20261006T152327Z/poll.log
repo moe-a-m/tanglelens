@@ -1,0 +1,2 @@
+0.188 {"blockId":"0x18786860bae5af6b54c896a9467abaecf46e2ca28cec531a9b5e96dc4af8ea6e","parents":["0x2915e645bf390e77ef78bf580c99dd47eb4a5b731e3973e4fdf580fdd10f6455"],"isSolid":true,"shouldPromote":false,"shouldReattach":false}
+1.083 {"blockId":"0x18786860bae5af6b54c896a9467abaecf46e2ca28cec531a9b5e96dc4af8ea6e","parents":["0x2915e645bf390e77ef78bf580c99dd47eb4a5b731e3973e4fdf580fdd10f6455"],"isSolid":true,"referencedByMilestoneIndex":25,"ledgerInclusionState":"noTransaction","whiteFlagIndex":1}

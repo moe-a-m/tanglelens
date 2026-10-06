@@ -101,25 +101,30 @@ Facts below are tagged by where they come from:
   `http://<node>:14265/api/core/v2/blocks` a body
   `{"protocolVersion": 2, "payload": {"type": 5, "tag": "0x…", "data": "0x…"}}`,
   where `tag` and `data` are hex of UTF-8 text and `data` is `json.dumps(message)`.
-  Type 5 is a Stardust *tagged data* payload [hypothesis].
-- **Submit response [hypothesis]:** HTTP 201 with `{"blockId": "0x…"}` (32-byte id,
-  66 hex chars with prefix). Save a real response before relying on it.
-- **Metadata [hypothesis]:** `GET /api/core/v2/blocks/{blockId}/metadata` returns at least
-  `isSolid`, `referencedByMilestoneIndex` (absent until referenced),
-  `ledgerInclusionState` (`noTransaction` for tagged data, `conflicting` possible),
-  `conflictReason`, `shouldPromote`, `shouldReattach`. Confirm every field name.
+  Type 5 is a Stardust *tagged data* payload [verified H3, `reports/hornet/README.md`].
+- **Submit response [verified H1]:** HTTP 201 with `{"blockId": "0x…"}` (32-byte id,
+  66 hex chars with prefix).
+- **Metadata [corrected H4]:** `GET /api/core/v2/blocks/{blockId}/metadata`. Before a milestone
+  reference: `blockId, parents, isSolid, shouldPromote, shouldReattach`, with **no
+  `ledgerInclusionState`**. After: `referencedByMilestoneIndex`, `ledgerInclusionState`
+  (`noTransaction` for tagged data), `whiteFlagIndex`, and `shouldPromote`/`shouldReattach`
+  are gone. `conflicting`/`conflictReason` not observed. Unknown id → 404 [H5]. A **short or
+  malformed id is zero-padded by Hornet** (→ 404 for the padded id), so only full 66-char
+  ids may be sent [H6].
 - **Solid ≠ confirmed.** A block can be solid (its past cone is known) before any milestone
   references it. The explorer reports these as separate states (§8). Measure on the real
   node how long attach → milestone reference takes and record it; the background
   verification interval and retry budget must be set from that measurement, not guessed.
-- **Milestone time [hypothesis]:** `GET /api/core/v2/milestones/by-index/{index}` returns
+  **Measured [H10, H11]:** solid ≤ 0.02 s; referenced after 0.26–5.07 s (median 3.3 s, n=20);
+  milestone interval ≈ 5 s.
+- **Milestone time [verified H8]:** `GET /api/core/v2/milestones/by-index/{index}` returns
   the milestone with a `timestamp` (Unix seconds). This gives a Tangle-attested time.
-- **Node info [hypothesis]:** `GET /api/core/v2/info` exposes `status.isHealthy` and
-  `status.latestMilestone.index`.
-- **Tag limit [hypothesis]:** tagged-data `tag` is at most 64 bytes; the scaffold rejects
-  longer tags. Verify against the protocol docs or a real rejection response.
-- **PoW [repo]:** `protocol_parameters.json` sets `minPoWScore: 0` for the private tangle,
-  so the node accepts blocks without client-side PoW.
+- **Node info [verified H9]:** `GET /api/core/v2/info` exposes `status.isHealthy` and
+  `status.latestMilestone.index`. On this single-node tangle `isHealthy` is **false** and
+  `/health` returns 503 while milestones flow normally, so never gate verification on it.
+- **Tag limit [verified H7]:** tagged-data `tag` is at most 64 bytes; Hornet answers 400
+  for 65 bytes.
+- **PoW [verified H2]:** `minPowScore: 0`; the node accepts blocks without client-side PoW.
 - **Content comparison must be like-for-like.** Re-encoding JSON on the explorer side can
   change key order or whitespace and produce false mismatches. The Messages API therefore
   forwards the **exact hex it sent**, and verification compares raw bytes, decoded JSON and
@@ -190,7 +195,7 @@ Already in the repo, tested only against `mock-hornet` with SQLite:
   tampers with Postgres and re-verifies.
 
 Known gaps — work these before any new feature:
-1. **Never run against real Hornet.** Every [hypothesis] in §3 is untested.
+1. ~~Never run against real Hornet.~~ P0 done 2026-10-06: §3 verified/corrected (`reports/hornet/README.md`).
 2. **Never run on PostgreSQL** (JSON column, `ILIKE`, `NULLS FIRST` ordering, psycopg URL).
 3. **No pytest suite in the repo.** The end-to-end check that was run lives outside it;
    rebuild it as tests (§10).

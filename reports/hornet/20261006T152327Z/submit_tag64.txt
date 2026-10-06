@@ -1,0 +1,12 @@
+# captured: 2026-10-06T15:23:29.604Z
+# command: curl -sS -i -X POST http://localhost:14265/api/core/v2/blocks -H Accept:\ application/json -H Content-Type:\ application/json --data-binary \{\"protocolVersion\":\ 2\,\ \"payload\":\ \{\"type\":\ 5\,\ \"tag\":\ \"0x61616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161\"\,\ \"data\":\ \"0x7b7d\"\}\}
+# ---- raw response ----
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=UTF-8
+Location: 0xb6df4964cc107295a55668b4be7cca1c68fa9e9c8bc5f5a23a567389ddd73e33
+Vary: Origin
+Vary: Accept-Encoding
+Date: Tue, 06 Oct 2026 15:23:29 GMT
+Content-Length: 81
+
+{"blockId":"0xb6df4964cc107295a55668b4be7cca1c68fa9e9c8bc5f5a23a567389ddd73e33"}

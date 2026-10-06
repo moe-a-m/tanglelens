@@ -1,0 +1,11 @@
+# captured: 2026-10-06T15:23:28.298Z
+# command: curl -sS -i -X GET http://localhost:14265/api/core/v2/blocks/0x18786860bae5af6b54c896a9467abaecf46e2ca28cec531a9b5e96dc4af8ea6e -H Accept:\ application/json
+# ---- raw response ----
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=UTF-8
+Vary: Origin
+Vary: Accept-Encoding
+Date: Tue, 06 Oct 2026 15:23:28 GMT
+Content-Length: 297
+
+{"protocolVersion":2,"parents":["0x2915e645bf390e77ef78bf580c99dd47eb4a5b731e3973e4fdf580fdd10f6455"],"payload":{"type":5,"tag":"0x76656c65732e63617074757265","data":"0x7b2270726f6265223a2022636170747572655f686f726e6574222c20227374616d70223a20223230323631303036543135323332375a227d"},"nonce":"0"}

@@ -1,0 +1,11 @@
+# captured: 2026-10-06T15:23:27.963Z
+# command: curl -sS -i -X GET http://localhost:14265/api/core/v2/info -H Accept:\ application/json
+# ---- raw response ----
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=UTF-8
+Vary: Origin
+Vary: Accept-Encoding
+Date: Tue, 06 Oct 2026 15:23:27 GMT
+Content-Length: 870
+
+{"name":"HORNET","version":"2.0.2","status":{"isHealthy":false,"latestMilestone":{"index":24,"timestamp":1791300203,"milestoneId":"0x3bc397fe9825c63566f34185e4db33421bd614efd901ef65cb0944ee586c5ff0"},"confirmedMilestone":{"index":24,"timestamp":1791300203,"milestoneId":"0x3bc397fe9825c63566f34185e4db33421bd614efd901ef65cb0944ee586c5ff0"},"pruningIndex":0},"supportedProtocolVersions":[2],"protocol":{"version":2,"networkName":"private_tangle1","bech32Hrp":"tst","minPowScore":0,"belowMaxDepth":15,"rentStructure":{"vByteCost":500,"vByteFactorData":1,"vByteFactorKey":10},"tokenSupply":"2779530283277761"},"pendingProtocolParameters":[],"baseToken":{"name":"TestCoin","tickerSymbol":"TEST","unit":"TEST","subunit":"testies","decimals":6,"useMetricPrefix":false},"metrics":{"blocksPerSecond":0.2,"referencedBlocksPerSecond":0.2,"referencedRate":100},"features":["pow"]}

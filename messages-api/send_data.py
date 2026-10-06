@@ -2,7 +2,7 @@
 Eclipse aeriOS IOTA Messages API -- extended for the Advanced Explorer.
 
 MODIFIED from eclipse-aerios/iota-messages-api@1ed089a (Apache-2.0, see LICENSE and ../NOTICE):
-forwards accepted blocks to the explorer, adds optional "type"/"source",
+forwards accepted blocks to the explorer, adds optional "type"/"source"/"trace",
 adds blockId to the response and a /health route. Success status stays HTTP 200 as upstream.
 
 Backward compatible with the original:  POST /upload?node=<hornet-host>
@@ -10,6 +10,7 @@ Backward compatible with the original:  POST /upload?node=<hornet-host>
 New optional body fields (stored as explorer metadata, NOT written to the Tangle):
   "type":   message type, e.g. "trust.score" / "self.reorchestration"
   "source": producing component, e.g. "aeriOS/IE-3"
+  "trace":  id grouping related events of one flow / user / sensor (UPV Idea #3)
 
 After Hornet accepts the block, the exact bytes that were sent (tag_hex, data_hex)
 plus the blockId are forwarded to the explorer, so the explorer can later prove
@@ -65,6 +66,9 @@ def upload():
     if "tag" not in body or "message" not in body:
         return jsonify(error="body must contain 'tag' and 'message'"), 400
 
+    trace = body.get("trace")
+    if trace is not None and (not isinstance(trace, str) or not 0 < len(trace) <= 128):
+        return jsonify(error="'trace' must be a non-empty string of at most 128 characters"), 400
     tag = body["tag"]
     message = json.dumps(body["message"])          # same encoding as the original API
     tag_hex, data_hex = to_hex(tag), to_hex(message)
@@ -96,6 +100,7 @@ def upload():
             "submitted_at": submitted_at,
             "message_type": body.get("type"),
             "source": body.get("source"),
+            "trace_id": trace,
         }
         threading.Thread(target=forward_to_explorer, args=(record,), daemon=True).start()
 

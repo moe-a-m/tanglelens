@@ -41,6 +41,7 @@ class IngestIn(BaseModel):
     submitted_at: datetime | None = None
     message_type: str | None = None
     source: str | None = None
+    trace_id: str | None = Field(None, max_length=128)
 
 
 def _to_hex(text: str) -> str:
@@ -60,7 +61,7 @@ def _iso(dt: datetime | None) -> str | None:
 def serialize(m: Message, with_history: bool = False) -> dict:
     out = {
         "block_id": m.block_id, "tag": m.tag, "message_type": m.message_type, "source": m.source,
-        "node": m.node, "message": m.payload, "data_sha256": m.data_sha256,
+        "node": m.node, "trace_id": m.trace_id, "message": m.payload, "data_sha256": m.data_sha256,
         "submitted_at": _iso(m.submitted_at), "received_at": _iso(m.received_at),
         "verification": {
             "status": m.status, "is_solid": m.is_solid, "content_match": m.content_match,
@@ -134,7 +135,7 @@ def ingest(item: IngestIn):
     m = Message(
         block_id=item.block_id, tag=item.tag, tag_hex=item.tag_hex or _to_hex(item.tag),
         payload=item.message, payload_text=text, data_hex=data_hex, data_sha256=sha256_hex(data_hex),
-        message_type=item.message_type, source=item.source, node=item.node,
+        message_type=item.message_type, source=item.source, node=item.node, trace_id=item.trace_id,
         submitted_at=_naive_utc(item.submitted_at) or utcnow(), received_at=utcnow(), status="unverified",
     )
     with SessionLocal() as s:
@@ -156,6 +157,7 @@ def search(
     date_to: datetime | None = Query(None, alias="to"),
     type: str | None = None,
     source: str | None = None,
+    trace: str | None = Query(None, description="trace id (exact), groups related events"),
     status: str | None = Query(None, description="comma-separated, e.g. pending,confirmed"),
     q: str | None = Query(None, description="free text inside the message body"),
     milestone: int | None = None,
@@ -177,6 +179,8 @@ def search(
         conds.append(Message.message_type == type)
     if source:
         conds.append(Message.source == source)
+    if trace:
+        conds.append(Message.trace_id == trace)
     if status:
         conds.append(Message.status.in_([x.strip() for x in status.split(",")]))
     if q:

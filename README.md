@@ -69,17 +69,18 @@ To stop: `make down`. To wipe the tangle: `cd iota-tangle/docker/main && sudo ./
 
 ## Publishing a message
 
-Same request as the upstream aeriOS Messages API, plus two optional fields:
+Same request as the upstream aeriOS Messages API, plus three optional fields (`type`, `source`, and
+`trace`, an id that groups related events of one flow, user or sensor; at most 128 characters):
 
 ```bash
 curl -s 'http://localhost:5555/upload?node=iota-hornet' -H 'Content-Type: application/json' -d '{
-  "tag": "trust.score", "type": "trust.update", "source": "aeriOS/IE-1",
+  "tag": "trust.score", "type": "trust.update", "source": "aeriOS/IE-1", "trace": "ie-1-2026-10-06",
   "message": {"ie": "IE-1", "score": 0.91}}'
 ```
 
 Response, HTTP 200 as upstream; Hornet's own status is in `status_code` (201 = accepted):
 `{"status_code": 201, "return_payload": "{\"blockId\":\"0x…\"}", "blockId": "0x…"}`.
-`type` and `source` are explorer metadata only; the on-chain payload is unchanged
+`type`, `source` and `trace` are explorer metadata only; the on-chain payload is unchanged
 (`{"type": 5, "tag": hex(tag), "data": hex(json.dumps(message))}`), so existing consumers keep working.
 
 ## REST API
@@ -89,7 +90,7 @@ Interactive docs: http://localhost:8090/docs
 | Method and path | Purpose |
 |---|---|
 | `POST /api/ingest` | Called by the Messages API. Idempotent on `block_id` (`created: false` on repeats). Rejects anything but a full lowercase 66-char block id (422). |
-| `GET /api/messages` | Search. `block_id`: full id, or a prefix of at least 6 hex chars (`0x` optional). `tag`: exact, or `trust*` for prefix. `from`, `to`: ISO 8601, inclusive, UTC unless an offset is given. Also `type`, `source`, `status` (comma-separated), `q` (case-insensitive text in the message or tag), `milestone`. Paging: `limit` (≤ 500), `offset`; `total` is the full count. `sort`: `-submitted_at` (default), `submitted_at`, `milestone_index`, `tag` (prefix `-` for descending). |
+| `GET /api/messages` | Search. `block_id`: full id, or a prefix of at least 6 hex chars (`0x` optional). `tag`: exact, or `trust*` for prefix. `from`, `to`: ISO 8601, inclusive, UTC unless an offset is given. Also `type`, `source`, `trace`, `status` (comma-separated), `q` (case-insensitive text in the message or tag), `milestone`. Paging: `limit` (≤ 500), `offset`; `total` is the full count. `sort`: `-submitted_at` (default), `submitted_at`, `milestone_index`, `tag` (prefix `-` for descending). |
 | `GET /api/messages/{block_id}` | Full record with verification history. |
 | `POST /api/messages/{block_id}/verify` | Re-verify against Hornet now. |
 | `GET /api/tags` | Tags with counts and last-seen time. |

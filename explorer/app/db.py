@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 
 from sqlalchemy import (JSON, Boolean, DateTime, ForeignKey, Integer, String, Text,
-                        create_engine)
+                        create_engine, inspect, text)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./explorer.db")
@@ -38,6 +38,7 @@ class Message(Base):
     message_type: Mapped[str | None] = mapped_column(String(64), index=True)
     source: Mapped[str | None] = mapped_column(String(128), index=True)
     node: Mapped[str | None] = mapped_column(String(128))
+    trace_id: Mapped[str | None] = mapped_column(String(128), index=True)   # groups related events (D8)
     submitted_at: Mapped[datetime] = mapped_column(DateTime, index=True)
     received_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
@@ -75,3 +76,23 @@ class Validation(Base):
 
 def init_db() -> None:
     Base.metadata.create_all(engine)
+    add_missing_columns()
+
+
+def add_missing_columns() -> list[str]:
+    """Additive upgrade of an existing database (DESIGN D11): add nullable columns that the
+    models define but the tables lack. Never drops or alters anything."""
+    added = []
+    insp = inspect(engine)
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            existing = {c["name"] for c in insp.get_columns(table.name)}
+            for col in table.columns:
+                if col.name not in existing and col.nullable:
+                    ddl = col.type.compile(dialect=engine.dialect)
+                    conn.execute(text(f'ALTER TABLE {table.name} ADD COLUMN {col.name} {ddl}'))
+                    if col.index:
+                        conn.execute(text(f'CREATE INDEX IF NOT EXISTS ix_{table.name}_{col.name} '
+                                          f'ON {table.name} ({col.name})'))
+                    added.append(f"{table.name}.{col.name}")
+    return added

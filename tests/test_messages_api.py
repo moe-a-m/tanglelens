@@ -113,3 +113,17 @@ def test_tag_over_64_bytes_goes_to_hornet_like_upstream(calls):
     r = client.post("/upload", json={"tag": "a" * 65, "message": {}})
     assert r.status_code == 200 and r.get_json()["status_code"] == 400 and r.get_json()["blockId"] is None
     assert len(calls["hornet"]) == 1 and calls["explorer"] == []
+
+
+def test_trace_is_forwarded_not_written_on_chain(calls):
+    client.post("/upload?node=iota-hornet", json={**BODY, "trace": "flow-42"})
+    assert calls["explorer"][0]["trace_id"] == "flow-42"
+    on_chain = calls["hornet"][0][1]["payload"]
+    assert json.loads(bytes.fromhex(on_chain["data"][2:])) == BODY["message"]   # on-chain payload unchanged
+    assert bytes.fromhex(on_chain["tag"][2:]).decode() == BODY["tag"]
+
+
+@pytest.mark.parametrize("bad", ["", "x" * 129, 42, {"a": 1}])
+def test_invalid_trace_is_rejected_before_hornet(calls, bad):
+    assert client.post("/upload", json={**BODY, "trace": bad}).status_code == 400
+    assert calls["hornet"] == []

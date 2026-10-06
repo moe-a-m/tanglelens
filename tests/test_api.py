@@ -159,3 +159,33 @@ def test_health_uses_real_info_fields(monkeypatch):
     node = client.get("/api/health").json()["hornet"]
     assert node == {"reachable": True, "name": "HORNET", "latest_milestone": info["status"]["latestMilestone"]["index"],
                     "healthy": False}
+
+
+# ---------- trace id (DESIGN D8) and additive schema upgrade (D11) ----------
+def test_trace_id_stored_and_searchable():
+    ingest(10, trace_id="flow-1")
+    ingest(11, trace_id="flow-1")
+    ingest(12, trace_id="flow-2")
+    ingest(13)
+    assert total(trace="flow-1") == 2 and total(trace="flow-2") == 1 and total(trace="flow") == 0
+    assert client.get(f"/api/messages/{bid(10)}").json()["trace_id"] == "flow-1"
+    assert client.get(f"/api/messages/{bid(13)}").json()["trace_id"] is None
+
+
+def test_trace_id_longer_than_128_is_rejected():
+    r = client.post("/api/ingest", json={"block_id": bid(14), "tag": "t", "message": {}, "trace_id": "x" * 129})
+    assert r.status_code == 422
+
+
+def test_startup_adds_missing_trace_column():
+    """An explorer DB created before D8 has no trace_id column; startup must add it."""
+    from sqlalchemy import inspect, text
+    from app.db import add_missing_columns, engine
+    with engine.begin() as c:
+        c.execute(text("DROP INDEX ix_messages_trace_id"))
+        c.execute(text("ALTER TABLE messages DROP COLUMN trace_id"))
+    assert "trace_id" not in {col["name"] for col in inspect(engine).get_columns("messages")}
+    assert add_missing_columns() == ["messages.trace_id"]
+    assert add_missing_columns() == []                       # idempotent
+    ingest(15, trace_id="after-upgrade")
+    assert total(trace="after-upgrade") == 1

@@ -214,16 +214,17 @@ messages-api/            # modified copy of eclipse-aerios/iota-messages-api (Ap
 explorer/app/            # FastAPI service: main.py (API), db.py (models), verify.py (Hornet + checks)
 explorer/app/static/     # web UI (single index.html, no build step)
 mock-hornet/             # dev-only Hornet stand-in — never used in the demo against judges without saying so
-scripts/                 # demo.sh, capture_hornet.sh (saves real node responses), smoke_real.sh
-tests/                   # pytest: unit (compare/verify), API contract, ingest idempotency, mock e2e
+scripts/                 # demo.sh, capture_hornet.sh (saves real node responses), measure_confirmation.py
+mosquitto/               # MQTT broker config (D12)
+tests/                   # pytest: verify, API, alerts, mqtt, Messages API; test_live.py = make smoke-real / e2e-mock
 tests/fixtures/hornet/   # real Hornet responses captured in §3, used by unit tests
 reports/hornet/          # saved real requests + responses (evidence for §3)
 reports/tests/           # saved pytest summaries
 docs/                    # DESIGN.md, VERIFICATION_LOG.md, DEPENDENCIES.md, OPEN_QUESTIONS.md, PITCH.md
 docs/references/         # challenge brief, aeriOS doc notes, Hornet API notes
-docker-compose.yml       # explorer + postgres + messages-api on external network iota-net
-docker-compose.mock.yml  # mock hornet; creates iota-net for dev without the tangle
-Makefile                 # make up | up-mock | down | test | smoke-real | demo | logs | reset-db
+docker-compose.yml       # explorer + postgres + mqtt-broker + messages-api on external network iota-net
+docker-compose.mock.yml  # mock hornet (mock-hornet, alias iota-hornet) on its own network iota-mock-net
+Makefile                 # make up | up-mock | down | test | smoke-real | e2e-mock | demo | mqtt-watch | logs | reset-db
 LICENSE, NOTICE          # Apache-2.0 obligations for the upstream code we modified
 ```
 
@@ -262,8 +263,10 @@ Keep these stable; any change updates the README, the OpenAPI docs (`/docs`) and
 - `GET /api/messages` — filters `block_id` (exact or prefix), `tag` (exact or `prefix*`),
   `from`, `to` (ISO 8601, UTC), `type`, `source`, `status` (comma list), `q`, `milestone`;
   `limit`, `offset`, `sort`.
-- `GET /api/messages/{block_id}`, `POST /api/messages/{block_id}/verify`,
-  `GET /api/tags`, `GET /api/stats`, `GET /api/health`.
+- `GET /api/messages/{block_id}`, `GET /api/messages/{block_id}/tangle`, `POST /api/messages/{block_id}/verify`,
+  `GET /api/traces`, `GET /api/traces/{trace_id}`, `POST /api/traces/{trace_id}/verify`,
+  `GET /api/alerts`, `POST /api/alerts/{id}/ack`, `GET /api/tags`, `GET /api/stats`, `GET /api/health`.
+- MQTT topics: `aerios/iota/blocks` (Messages API → explorer), `aerios/explorer/alerts` (explorer).
 
 The three search keys the brief makes mandatory — **block id, date, tag** — must each have
 a passing test and a line in the demo.

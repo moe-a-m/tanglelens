@@ -1,0 +1,40 @@
+# Clean-clone check of a774412, 2026-10-06T17:24:20Z
+git clone of a774412 into an empty directory; real tangle already running. Note: "exit=" lines are blank because the shell is zsh (no PIPESTATUS); pass counts are authoritative.
+$ EXPLORER_PORT=8091 make up
+ Container explorer-db Started 
+ Container mqtt-broker Started 
+ Container iota-messages-api Started 
+ Container advanced-explorer Started 
+stats: {"total":0,"by_status":{},"latest_milestone":null}
+$ make test
+98 passed, 1 deselected in 17.60s
+98 passed, 1 deselected in 14.66s
+exit=
+$ make smoke-real
+1 passed, 98 deselected in 7.85s
+$ EXPLORER_PORT=8091 make demo
+  status: pending | solid: True | milestone: None | content match: True
+{"total":8,"by_status":{"confirmed":8},"latest_milestone":1539}
+    0x5824e4d640b3e1ea… trust.reliability -> mqtt
+    0xbd7c92c99a96e467… trust.score -> mqtt
+    0x4cb156dae1346976… trust.security.alert -> mqtt
+    0x147cb4141849e8ae… trust.score -> mqtt
+    0xc1a0ad26435f312c… self.reorquestration -> mqtt
+  block id  0x147cb4141849e8ae2ac812689a3b2ba07e580f75eab195e547224f4db6ad1b0c            -> 1
+  block id prefix 0x147cb41418                -> 1
+  date      from=2026-10-06T17:30:19Z to=2026-10-06T17:33:19Z -> 8
+  tag       trust.score                     -> 2 (this run)
+  tag       trust*                          -> 4 (this run)
+  source    aeriOS/trust-manager            -> 2 (this run)
+  text      be_creative                     -> 1 (this run)
+  verified: True | events: 2 | problems: 0
+  open alerts: 1 - application:trust.security.alert
+6. Someone inflates ie-2's trust score in the explorer's database (0.61 -> 0.95)...
+  status: content_mismatch
+  trace domain-1-ie-2-203209 verified: False | problems: 1
+  newest alert: integrity confirmed -> content_mismatch on 0x147cb4141849e8ae…
+$ make up-mock (tangle keeps running)
+$ make e2e-mock
+1 passed, 98 deselected in 8.94s
+$ make down
+0

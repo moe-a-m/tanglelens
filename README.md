@@ -48,6 +48,10 @@ not only the development mock. The evidence is in [`reports/`](reports/) (see [E
 Requirements: Linux (or WSL2, working inside the Linux filesystem rather than `/mnt/c`), Docker with
 Compose v2, `make`, `curl`, `python3`, and `sudo` for the tangle bootstrap.
 
+0. **Get the code:**
+   ```bash
+   git clone https://github.com/moe-a-m/tanglelens && cd tanglelens
+   ```
 1. **Start the private tangle** (once; `bootstrap.sh` must run as root because it `chown`s the
    node's data directories to uid 65532):
    ```bash

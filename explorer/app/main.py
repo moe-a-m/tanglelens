@@ -149,7 +149,8 @@ def ingest(item: IngestIn):
 
 @app.get("/api/messages")
 def search(
-    block_id: str | None = Query(None, description="exact id, or a prefix of at least 6 hex chars"),
+    block_id: str | None = Query(None, pattern=r"^(0x)?[0-9a-fA-F]{6,64}$",
+                                 description="exact id, or a prefix of at least 6 hex chars ('0x' optional)"),
     tag: str | None = Query(None, description="exact tag; end with * for prefix match"),
     date_from: datetime | None = Query(None, alias="from"),
     date_to: datetime | None = Query(None, alias="to"),
@@ -164,7 +165,8 @@ def search(
 ):
     conds = []
     if block_id:
-        conds.append(Message.block_id == block_id if len(block_id) >= 66 else Message.block_id.startswith(block_id.lower()))
+        hex_id = "0x" + block_id.lower().removeprefix("0x")
+        conds.append(Message.block_id == hex_id if len(hex_id) == 66 else Message.block_id.startswith(hex_id))
     if tag:
         conds.append(Message.tag.startswith(tag[:-1]) if tag.endswith("*") else Message.tag == tag)
     if date_from:

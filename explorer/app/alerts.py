@@ -12,7 +12,7 @@ import threading
 
 import httpx
 
-from .db import Alert, Message, utcnow
+from .db import Alert, Message, iso, utcnow
 
 PROBLEMS = {"content_mismatch", "not_found", "conflicting"}
 ALERT_TAGS = [p.strip() for p in os.getenv("ALERT_TAGS", "").split(",") if p.strip()]
@@ -30,7 +30,6 @@ def new_alert(msg: Message, kind: str, previous_status: str | None, detail: str 
 
 
 def to_dict(a: Alert) -> dict:
-    iso = lambda dt: dt.isoformat(timespec="seconds") + "Z" if dt else None   # noqa: E731
     return {"id": a.id, "created_at": iso(a.created_at), "kind": a.kind, "status": a.status,
             "previous_status": a.previous_status, "block_id": a.block_id, "tag": a.tag,
             "trace_id": a.trace_id, "detail": a.detail, "acknowledged_at": iso(a.acknowledged_at)}
@@ -47,7 +46,8 @@ def post_webhook(payload: dict) -> None:
 def notify(alert: Alert) -> None:
     """Called after the alert row is committed. Never raises, never blocks the caller."""
     log.warning("ALERT %s %s %s %s", alert.kind, alert.status, alert.block_id[:18], alert.detail or "")
+    payload = to_dict(alert)
     from . import mqtt                      # local import: mqtt is optional and imports nothing from here
-    mqtt.publish_alert(to_dict(alert))
+    mqtt.publish_alert(payload)
     if ALERT_WEBHOOK_URL:
-        threading.Thread(target=post_webhook, args=(to_dict(alert),), daemon=True).start()
+        threading.Thread(target=post_webhook, args=(payload,), daemon=True).start()

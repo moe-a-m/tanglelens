@@ -16,6 +16,11 @@ def utcnow() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
+def iso(dt: datetime | None) -> str | None:
+    """API format for a stored (naive UTC) timestamp."""
+    return dt.isoformat(timespec="seconds") + "Z" if dt else None
+
+
 class Base(DeclarativeBase):
     pass
 

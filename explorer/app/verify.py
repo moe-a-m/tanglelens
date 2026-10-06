@@ -72,31 +72,38 @@ def sha256_hex(data_hex: str) -> str:
     return hashlib.sha256(bytes.fromhex(_norm_hex(data_hex))).hexdigest()
 
 
+def decode_payload(block: dict) -> dict:
+    """Human-readable view of a tagged-data block, shared by verification and the UI's Tangle copy."""
+    payload = block.get("payload") or {}
+    text = _decode(payload.get("data"))
+    try:
+        message = json.loads(text) if text is not None else None
+    except ValueError:
+        message = None
+    return {"type": payload.get("type"), "tag_hex": payload.get("tag"), "data_hex": payload.get("data"),
+            "tag": _decode(payload.get("tag")), "data_text": text, "message": message}
+
+
 def compare_content(msg: Message, block: dict) -> tuple[bool, bool, list[str]]:
     """Compare everything the explorer stored with what the Tangle holds.
     Checks the exact bytes AND the human-readable copies, so tampering with
     either the hex or the decoded JSON in the database is detected."""
-    payload = block.get("payload") or {}
+    chain = decode_payload(block)
     problems: list[str] = []
 
-    if payload.get("type") != 5:
-        problems.append(f"block payload type is {payload.get('type')}, expected 5 (tagged data)")
+    if chain["type"] != 5:
+        problems.append(f"block payload type is {chain['type']}, expected 5 (tagged data)")
 
-    chain_tag_hex, chain_data_hex = payload.get("tag"), payload.get("data")
-    tag_match = _norm_hex(chain_tag_hex) == _norm_hex(msg.tag_hex) and _decode(chain_tag_hex) == msg.tag
+    chain_tag_hex, chain_data_hex = chain["tag_hex"], chain["data_hex"]
+    tag_match = _norm_hex(chain_tag_hex) == _norm_hex(msg.tag_hex) and chain["tag"] == msg.tag
     if not tag_match:
-        problems.append(f"tag differs: tangle={_decode(chain_tag_hex)!r} stored={msg.tag!r}")
+        problems.append(f"tag differs: tangle={chain['tag']!r} stored={msg.tag!r}")
 
     data_match = _norm_hex(chain_data_hex) == _norm_hex(msg.data_hex)
     if not data_match:
         problems.append("raw data bytes differ from what was submitted")
 
-    chain_text = _decode(chain_data_hex)
-    try:
-        chain_json = json.loads(chain_text) if chain_text is not None else None
-    except ValueError:
-        chain_json = None
-    if chain_json != msg.payload:
+    if chain["message"] != msg.payload:
         data_match = False
         problems.append("decoded message in the database differs from the Tangle copy")
 

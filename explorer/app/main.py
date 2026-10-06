@@ -14,10 +14,10 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 
 from . import alerts, mqtt
-from .db import Alert, Message, SessionLocal, init_db, utcnow
+from .db import Alert, Message, SessionLocal, init_db, iso, utcnow
 import httpx
 
-from .verify import RETRYABLE, Hornet, _decode, sha256_hex, verify_message
+from .verify import RETRYABLE, Hornet, decode_payload, sha256_hex, verify_message
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("explorer")
@@ -59,8 +59,7 @@ def _naive_utc(dt: datetime | None) -> datetime | None:
     return dt.astimezone(timezone.utc).replace(tzinfo=None) if dt.tzinfo else dt
 
 
-def _iso(dt: datetime | None) -> str | None:
-    return dt.isoformat(timespec="seconds") + "Z" if dt else None
+_iso = iso
 
 
 def serialize(m: Message, with_history: bool = False) -> dict:
@@ -239,15 +238,10 @@ def tangle_copy(block_id: str):
         raise HTTPException(502, f"Hornet request failed: {e}")
     if block is None:
         raise HTTPException(404, f"Hornet has no block {block_id}")
-    payload = block.get("payload") or {}
-    text = _decode(payload.get("data"))
-    try:
-        message = json.loads(text) if text is not None else None
-    except ValueError:
-        message = None
-    return {"block_id": block_id, "payload_type": payload.get("type"), "tag": _decode(payload.get("tag")),
-            "message": message, "data_text": text, "tag_hex": payload.get("tag"), "data_hex": payload.get("data"),
-            "data_sha256": sha256_hex(payload["data"]) if payload.get("data") else None,
+    chain = decode_payload(block)
+    return {"block_id": block_id, "payload_type": chain["type"], "tag": chain["tag"], "message": chain["message"],
+            "data_text": chain["data_text"], "tag_hex": chain["tag_hex"], "data_hex": chain["data_hex"],
+            "data_sha256": sha256_hex(chain["data_hex"]) if chain["data_hex"] else None,
             "fetched_at": _iso(utcnow())}
 
 

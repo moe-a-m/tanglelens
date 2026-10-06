@@ -1,0 +1,44 @@
+
+[1m1. Publishing through the extended Messages API (same /upload contract as aeriOS)[0m
+  0x71a6ec2252128068f6e6bdd24b1ae9565edabda0e6c497bcc36dcc28ae150339  trust.reliability     (domain-1-ie-1-201802)
+  0xb11af417d61de868aa6e75980c08e0b3efac1865777723de54ad2409f1361bd6  trust.score           (domain-1-ie-1-201802)
+  0x226d2dc886440d0eb7658c6bc89329618d879002f86176ed96cffc28145f2bbf  trust.security.alert  (domain-1-ie-2-201802)
+  0xd6b0414953c1107646ccd0f7d0c41dba419bd8ff7bf7a134b89a11a0e0ed9c7a  trust.score           (domain-1-ie-2-201802)
+  0xe6473b1eb870dbfca13e0bf1fe070978e90079a1c373ec40e4f7f20e4d30cc5b  self.reorquestration
+
+[1m2. Verify the last trust score on demand, right after insertion[0m
+  (solid within ~20 ms; a milestone references it after 0.3-5 s, reports/hornet/README.md H11:
+   'pending' if no milestone has arrived yet, otherwise already 'confirmed')
+  status: pending | solid: True | milestone: None | content match: True
+
+[1m3. After the next milestones (expect confirmed)[0m
+{"total":5,"by_status":{"confirmed":5},"latest_milestone":1370}
+  delivery path that arrived first (HTTP forward or MQTT, the other is a no-op):
+    0x71a6ec2252128068… trust.reliability -> mqtt
+    0xb11af417d61de868… trust.score -> mqtt
+    0x226d2dc886440d0e… trust.security.alert -> mqtt
+    0xd6b0414953c11076… trust.score -> mqtt
+    0xe6473b1eb870dbfc… self.reorquestration -> mqtt
+
+[1m4. Search by the brief's three keys, plus metadata[0m
+  block id  0xd6b0414953c1107646ccd0f7d0c41dba419bd8ff7bf7a134b89a11a0e0ed9c7a            -> 1
+  block id prefix 0xd6b0414953                -> 1
+  date      from=2026-10-06T17:16:12Z to=2026-10-06T17:19:12Z -> 5
+  tag       trust.score                     -> 2 (this run)
+  tag       trust*                          -> 4 (this run)
+  source    aeriOS/trust-manager            -> 2 (this run)
+  text      be_creative                     -> 1 (this run)
+
+[1m5. Trace timeline for domain-1-ie-2-201802 (related events, each verified against its own block id)[0m
+  verified: True | events: 2 | problems: 0
+  #1 2026-10-06T17:18:02Z trust.security.alert   confirmed  milestone 1370
+  #2 2026-10-06T17:18:02Z trust.score            confirmed  milestone 1370
+  open alerts: 1 - application:trust.security.alert
+
+[1m6. Someone inflates ie-2's trust score in the explorer's database (0.61 -> 0.95)...[0m
+  status: content_mismatch
+  why:    decoded message in the database differs from the Tangle copy
+  trace domain-1-ie-2-201802 verified: False | problems: 1
+  newest alert: integrity confirmed -> content_mismatch on 0xd6b0414953c11076…
+
+[1mOpen http://localhost:8091 to browse, follow the trace domain-1-ie-2-201802 and inspect every message.[0m

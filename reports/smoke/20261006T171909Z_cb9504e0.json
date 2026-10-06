@@ -1,0 +1,162 @@
+{
+  "explorer": "http://advanced-explorer:8090",
+  "api": "http://iota-messages-api:5555",
+  "records": {
+    "0x614e04bc3ad9ad97ac20e44131f8c68f043cbcc99e1be7ab3f2ce1399fdaa630": {
+      "block_id": "0x614e04bc3ad9ad97ac20e44131f8c68f043cbcc99e1be7ab3f2ce1399fdaa630",
+      "tag": "smoke.cb9504e0",
+      "message_type": "smoke",
+      "source": "smoke/cb9504e0",
+      "node": "iota-hornet",
+      "trace_id": null,
+      "received_via": "mqtt",
+      "message": {
+        "run": "cb9504e0",
+        "i": 0
+      },
+      "data_sha256": "73c2b96b68944a47da856d73ddf0664cbaac6f8372272fa3649890a149a48be8",
+      "submitted_at": "2026-10-06T17:19:04Z",
+      "received_at": "2026-10-06T17:19:04Z",
+      "verification": {
+        "status": "confirmed",
+        "is_solid": true,
+        "content_match": true,
+        "milestone_index": 1382,
+        "milestone_time": "2026-10-06T17:19:06Z",
+        "ledger_inclusion_state": "noTransaction",
+        "last_checked_at": "2026-10-06T17:19:08Z",
+        "check_count": 2
+      },
+      "raw": {
+        "tag_hex": "0x736d6f6b652e6362393530346530",
+        "data_hex": "0x7b2272756e223a20226362393530346530222c202269223a20307d"
+      },
+      "history": [
+        {
+          "checked_at": "2026-10-06T17:19:08Z",
+          "status": "confirmed",
+          "is_solid": true,
+          "milestone_index": 1382,
+          "ledger_inclusion_state": "noTransaction",
+          "tag_match": true,
+          "data_match": true,
+          "detail": "referenced by milestone 1382"
+        },
+        {
+          "checked_at": "2026-10-06T17:19:05Z",
+          "status": "pending",
+          "is_solid": true,
+          "milestone_index": null,
+          "ledger_inclusion_state": null,
+          "tag_match": true,
+          "data_match": true,
+          "detail": "solid, waiting for a milestone to reference it"
+        }
+      ]
+    },
+    "0xee7fc33383af7f1f38baec63ebdb066df76a60a018c688f64a0c079e01531f80": {
+      "block_id": "0xee7fc33383af7f1f38baec63ebdb066df76a60a018c688f64a0c079e01531f80",
+      "tag": "smoke.cb9504e0",
+      "message_type": "smoke",
+      "source": "smoke/cb9504e0",
+      "node": "iota-hornet",
+      "trace_id": null,
+      "received_via": "mqtt",
+      "message": {
+        "run": "cb9504e0",
+        "i": 1
+      },
+      "data_sha256": "2469dc04fb45ed0043728b268eea0e2c2a7d36a66e45f0577d30ec7fc3ae0000",
+      "submitted_at": "2026-10-06T17:19:04Z",
+      "received_at": "2026-10-06T17:19:04Z",
+      "verification": {
+        "status": "confirmed",
+        "is_solid": true,
+        "content_match": true,
+        "milestone_index": 1382,
+        "milestone_time": "2026-10-06T17:19:06Z",
+        "ledger_inclusion_state": "noTransaction",
+        "last_checked_at": "2026-10-06T17:19:08Z",
+        "check_count": 2
+      },
+      "raw": {
+        "tag_hex": "0x736d6f6b652e6362393530346530",
+        "data_hex": "0x7b2272756e223a20226362393530346530222c202269223a20317d"
+      },
+      "history": [
+        {
+          "checked_at": "2026-10-06T17:19:08Z",
+          "status": "confirmed",
+          "is_solid": true,
+          "milestone_index": 1382,
+          "ledger_inclusion_state": "noTransaction",
+          "tag_match": true,
+          "data_match": true,
+          "detail": "referenced by milestone 1382"
+        },
+        {
+          "checked_at": "2026-10-06T17:19:05Z",
+          "status": "pending",
+          "is_solid": true,
+          "milestone_index": null,
+          "ledger_inclusion_state": null,
+          "tag_match": true,
+          "data_match": true,
+          "detail": "solid, waiting for a milestone to reference it"
+        }
+      ]
+    },
+    "0xbcae5109c5f6500aab48d12e63df23eca25a3bd2fb6108ed08b2411b555c0c31": {
+      "block_id": "0xbcae5109c5f6500aab48d12e63df23eca25a3bd2fb6108ed08b2411b555c0c31",
+      "tag": "smoke.cb9504e0",
+      "message_type": "smoke",
+      "source": "smoke/cb9504e0",
+      "node": "iota-hornet",
+      "trace_id": null,
+      "received_via": "mqtt",
+      "message": {
+        "run": "cb9504e0",
+        "i": 2
+      },
+      "data_sha256": "a945a8bcee62b8291e2a66b070e9441fd027120a7ea3f7825bdd9250752477f5",
+      "submitted_at": "2026-10-06T17:19:04Z",
+      "received_at": "2026-10-06T17:19:04Z",
+      "verification": {
+        "status": "confirmed",
+        "is_solid": true,
+        "content_match": true,
+        "milestone_index": 1382,
+        "milestone_time": "2026-10-06T17:19:06Z",
+        "ledger_inclusion_state": "noTransaction",
+        "last_checked_at": "2026-10-06T17:19:08Z",
+        "check_count": 2
+      },
+      "raw": {
+        "tag_hex": "0x736d6f6b652e6362393530346530",
+        "data_hex": "0x7b2272756e223a20226362393530346530222c202269223a20327d"
+      },
+      "history": [
+        {
+          "checked_at": "2026-10-06T17:19:08Z",
+          "status": "confirmed",
+          "is_solid": true,
+          "milestone_index": 1382,
+          "ledger_inclusion_state": "noTransaction",
+          "tag_match": true,
+          "data_match": true,
+          "detail": "referenced by milestone 1382"
+        },
+        {
+          "checked_at": "2026-10-06T17:19:05Z",
+          "status": "pending",
+          "is_solid": true,
+          "milestone_index": null,
+          "ledger_inclusion_state": null,
+          "tag_match": true,
+          "data_match": true,
+          "detail": "solid, waiting for a milestone to reference it"
+        }
+      ]
+    }
+  }
+}

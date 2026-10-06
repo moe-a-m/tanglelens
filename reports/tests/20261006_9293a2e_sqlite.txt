@@ -1,0 +1,305 @@
+..............s......................................................... [ 62%]
+...........................................                              [100%]
+==================================== PASSES ====================================
+___________________ test_integrity_alert_only_on_transition ____________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity content_mismatch 0x18786860bae5af6b decoded message in the database differs from the Tangle copy
+___________________ test_not_found_alerts_but_error_does_not ___________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0x18786860bae5af6b Hornet has no block with this id
+___________________________ test_conflicting_alerts ____________________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity conflicting 0x18786860bae5af6b
+____________________ test_application_alert_on_ingest_once _____________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT application unverified 0xcccccccccccccccc tag 'trust.security.alert' matches ALERT_TAGS
+____________________ test_list_since_unacknowledged_and_ack ____________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0x0000000000000000 Hornet has no block with this id
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0x0000000000000000 Hornet has no block with this id
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0x0000000000000000 Hornet has no block with this id
+____________ test_webhook_receives_alert_and_failures_do_not_raise _____________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0x18786860bae5af6b Hornet has no block with this id
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0xeeeeeeeeeeeeeeee Hornet has no block with this id
+WARNING  explorer.alerts:alerts.py:43 alert 2 webhook failed: hook down
+______ test_hornet_error_between_two_mismatches_does_not_repeat_the_alert ______
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity content_mismatch 0x18786860bae5af6b decoded message in the database differs from the Tangle copy
+___________________ test_error_then_new_problem_still_alerts ___________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0x18786860bae5af6b Hornet has no block with this id
+_____________ test_trace_verify_checks_every_event_against_hornet ______________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity content_mismatch 0x0000000000000000 decoded message in the database differs from the Tangle copy
+_______ test_explorer_down_upload_still_succeeds_and_forward_is_retried ________
+------------------------------ Captured log call -------------------------------
+WARNING  messages-api:send_data.py:68 explorer unreachable (attempt 1/5): explorer down
+WARNING  messages-api:send_data.py:68 explorer unreachable (attempt 2/5): explorer down
+______________ test_explorer_down_for_good_gives_up_after_retries ______________
+------------------------------ Captured log call -------------------------------
+WARNING  messages-api:send_data.py:68 explorer unreachable (attempt 1/5): explorer down
+WARNING  messages-api:send_data.py:68 explorer unreachable (attempt 2/5): explorer down
+WARNING  messages-api:send_data.py:68 explorer unreachable (attempt 3/5): explorer down
+WARNING  messages-api:send_data.py:68 explorer unreachable (attempt 4/5): explorer down
+WARNING  messages-api:send_data.py:68 explorer unreachable (attempt 5/5): explorer down
+ERROR    messages-api:send_data.py:71 gave up forwarding 0xabababababababababababababababababababababababababababababababab; explorer can backfill via POST /api/ingest
+_______________ test_mqtt_trouble_never_fails_the_upload[fake0] ________________
+------------------------------ Captured log call -------------------------------
+WARNING  messages-api:send_data.py:81 MQTT publish of 0xabababababababababababababababababababababababababababababababab not sent now (rc=4)
+_______________ test_mqtt_trouble_never_fails_the_upload[fake1] ________________
+------------------------------ Captured log call -------------------------------
+WARNING  messages-api:send_data.py:83 MQTT publish of 0xabababababababababababababababababababababababababababababababab failed: broker gone
+____________________ test_invalid_mqtt_records_are_dropped _____________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.mqtt:mqtt.py:34 ignored invalid MQTT record: [{'type': 'json_invalid', 'loc': (), 'msg': 'Invalid JSON: expected ident at line 1 column 2', 'input': b'not json', 'ctx': {'error': 'expected ident at line 1 column 2'}, 'url': 'https://errors.pydantic.dev/2.13/v/json_invalid'}]
+WARNING  explorer.mqtt:mqtt.py:34 ignored invalid MQTT record: [{'type': 'string_pattern_mismatch', 'loc': ('block_id',), 'msg': "String should match pattern '^0x[0-9a-f]{64}$'", 'input': '0x1234', 'ctx': {'pattern': '^0x[0-9a-f]{64}$'}, 'url': 'https://errors.pydantic.dev/2.13/v/string_pattern_mismatch'}]
+WARNING  explorer.mqtt:mqtt.py:34 ignored invalid MQTT record: [{'type': 'missing', 'loc': ('block_id',), 'msg': 'Field required', 'input': {}, 'url': 'https://errors.pydantic.dev/2.13/v/missing'}]
+______________________ test_alerts_are_published_to_mqtt _______________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0x18786860bae5af6b Hornet has no block with this id
+______________________ test_ack_only_after_store_succeeds ______________________
+------------------------------ Captured log call -------------------------------
+ERROR    explorer.mqtt:mqtt.py:47 failed to store MQTT record (retry in 1s)
+Traceback (most recent call last):
+  File "/repo/explorer/app/mqtt.py", line 45, in deliver
+    r = handle_message(msg.payload, store, model)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/explorer/app/mqtt.py", line 36, in handle_message
+    return store(item, via="mqtt")
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/test_mqtt.py", line 85, in flaky_store
+    raise RuntimeError("database restarting")
+RuntimeError: database restarting
+ERROR    explorer.mqtt:mqtt.py:47 failed to store MQTT record (retry in 2s)
+Traceback (most recent call last):
+  File "/repo/explorer/app/mqtt.py", line 45, in deliver
+    r = handle_message(msg.payload, store, model)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/explorer/app/mqtt.py", line 36, in handle_message
+    return store(item, via="mqtt")
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/test_mqtt.py", line 85, in flaky_store
+    raise RuntimeError("database restarting")
+RuntimeError: database restarting
+_______________ test_store_keeps_failing_leaves_message_unacked ________________
+------------------------------ Captured log call -------------------------------
+ERROR    explorer.mqtt:mqtt.py:47 failed to store MQTT record (retry in 1s)
+Traceback (most recent call last):
+  File "/repo/explorer/app/mqtt.py", line 45, in deliver
+    r = handle_message(msg.payload, store, model)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/explorer/app/mqtt.py", line 36, in handle_message
+    return store(item, via="mqtt")
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/test_mqtt.py", line 97, in broken_store
+    raise RuntimeError("database down")
+RuntimeError: database down
+ERROR    explorer.mqtt:mqtt.py:47 failed to store MQTT record (retry in 2s)
+Traceback (most recent call last):
+  File "/repo/explorer/app/mqtt.py", line 45, in deliver
+    r = handle_message(msg.payload, store, model)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/explorer/app/mqtt.py", line 36, in handle_message
+    return store(item, via="mqtt")
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/test_mqtt.py", line 97, in broken_store
+    raise RuntimeError("database down")
+RuntimeError: database down
+ERROR    explorer.mqtt:mqtt.py:47 failed to store MQTT record (retry in 4s)
+Traceback (most recent call last):
+  File "/repo/explorer/app/mqtt.py", line 45, in deliver
+    r = handle_message(msg.payload, store, model)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/explorer/app/mqtt.py", line 36, in handle_message
+    return store(item, via="mqtt")
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/test_mqtt.py", line 97, in broken_store
+    raise RuntimeError("database down")
+RuntimeError: database down
+ERROR    explorer.mqtt:mqtt.py:47 failed to store MQTT record (retry in 8s)
+Traceback (most recent call last):
+  File "/repo/explorer/app/mqtt.py", line 45, in deliver
+    r = handle_message(msg.payload, store, model)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/explorer/app/mqtt.py", line 36, in handle_message
+    return store(item, via="mqtt")
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/test_mqtt.py", line 97, in broken_store
+    raise RuntimeError("database down")
+RuntimeError: database down
+ERROR    explorer.mqtt:mqtt.py:47 failed to store MQTT record (retry in 15s)
+Traceback (most recent call last):
+  File "/repo/explorer/app/mqtt.py", line 45, in deliver
+    r = handle_message(msg.payload, store, model)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/explorer/app/mqtt.py", line 36, in handle_message
+    return store(item, via="mqtt")
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/test_mqtt.py", line 97, in broken_store
+    raise RuntimeError("database down")
+RuntimeError: database down
+ERROR    explorer.mqtt:mqtt.py:47 failed to store MQTT record (retry in 15s)
+Traceback (most recent call last):
+  File "/repo/explorer/app/mqtt.py", line 45, in deliver
+    r = handle_message(msg.payload, store, model)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/explorer/app/mqtt.py", line 36, in handle_message
+    return store(item, via="mqtt")
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/test_mqtt.py", line 97, in broken_store
+    raise RuntimeError("database down")
+RuntimeError: database down
+ERROR    explorer.mqtt:mqtt.py:47 failed to store MQTT record (retry in Nones)
+Traceback (most recent call last):
+  File "/repo/explorer/app/mqtt.py", line 45, in deliver
+    r = handle_message(msg.payload, store, model)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/explorer/app/mqtt.py", line 36, in handle_message
+    return store(item, via="mqtt")
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/test_mqtt.py", line 97, in broken_store
+    raise RuntimeError("database down")
+RuntimeError: database down
+ERROR    explorer.mqtt:mqtt.py:49 leaving MQTT message 7 unacknowledged; the broker redelivers it on reconnect
+___________________ test_invalid_record_is_acked_and_dropped ___________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.mqtt:mqtt.py:34 ignored invalid MQTT record: [{'type': 'json_invalid', 'loc': (), 'msg': 'Invalid JSON: expected ident at line 1 column 2', 'input': b'not json', 'ctx': {'error': 'expected ident at line 1 column 2'}, 'url': 'https://errors.pydantic.dev/2.13/v/json_invalid'}]
+_______________________________ test_conflicting _______________________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity conflicting 0x18786860bae5af6b 1
+________________________ test_metadata_404_is_not_found ________________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0x18786860bae5af6b Hornet has no block with this id
+__________________ test_block_404_after_metadata_is_not_found __________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity not_found 0x18786860bae5af6b metadata exists but block body was not returned
+________________ test_content_mismatch_takes_precedence[meta0] _________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity content_mismatch 0x18786860bae5af6b decoded message in the database differs from the Tangle copy
+________________ test_content_mismatch_takes_precedence[meta1] _________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity content_mismatch 0x18786860bae5af6b decoded message in the database differs from the Tangle copy
+________________ test_content_mismatch_takes_precedence[meta2] _________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity content_mismatch 0x18786860bae5af6b decoded message in the database differs from the Tangle copy
+________________ test_content_mismatch_takes_precedence[meta3] _________________
+------------------------------ Captured log call -------------------------------
+WARNING  explorer.alerts:alerts.py:48 ALERT integrity content_mismatch 0x18786860bae5af6b decoded message in the database differs from the Tangle copy
+=========================== short test summary info ============================
+PASSED tests/test_alerts.py::test_integrity_alert_only_on_transition
+PASSED tests/test_alerts.py::test_not_found_alerts_but_error_does_not
+PASSED tests/test_alerts.py::test_conflicting_alerts
+PASSED tests/test_alerts.py::test_tag_patterns[trust.security.alert-patterns0-True]
+PASSED tests/test_alerts.py::test_tag_patterns[trust.score-patterns1-False]
+PASSED tests/test_alerts.py::test_tag_patterns[trust.score-patterns2-True]
+PASSED tests/test_alerts.py::test_tag_patterns[trust.score-patterns3-False]
+PASSED tests/test_alerts.py::test_tag_patterns[Trust.alert-patterns4-True]
+PASSED tests/test_alerts.py::test_tag_patterns[trust.alerts-patterns5-False]
+PASSED tests/test_alerts.py::test_application_alert_on_ingest_once
+PASSED tests/test_alerts.py::test_list_since_unacknowledged_and_ack
+PASSED tests/test_alerts.py::test_webhook_receives_alert_and_failures_do_not_raise
+PASSED tests/test_alerts.py::test_hornet_error_between_two_mismatches_does_not_repeat_the_alert
+PASSED tests/test_alerts.py::test_error_then_new_problem_still_alerts
+PASSED tests/test_api.py::test_ingest_twice_is_idempotent
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[0x1234]
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[abababababababababababababababababababababababababababababababab]
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[]
+PASSED tests/test_api.py::test_ingest_keeps_forwarded_exact_hex
+PASSED tests/test_api.py::test_search_by_exact_block_id
+PASSED tests/test_api.py::test_search_by_block_id_prefix
+PASSED tests/test_api.py::test_block_id_filter_rejects_non_hex[0xzzzzzz]
+PASSED tests/test_api.py::test_block_id_filter_rejects_non_hex[0x000000 ]
+PASSED tests/test_api.py::test_block_id_filter_rejects_non_hex[0x00000000000000000000000000000000000000000000000000000000000000000]
+PASSED tests/test_api.py::test_block_id_prefix_shorter_than_6_hex_chars_is_rejected[0x]
+PASSED tests/test_api.py::test_block_id_prefix_shorter_than_6_hex_chars_is_rejected[0x0000]
+PASSED tests/test_api.py::test_block_id_prefix_shorter_than_6_hex_chars_is_rejected[0x00000]
+PASSED tests/test_api.py::test_block_id_prefix_shorter_than_6_hex_chars_is_rejected[00000]
+PASSED tests/test_api.py::test_search_by_tag_exact_and_prefix
+PASSED tests/test_api.py::test_search_by_date_bounds_are_inclusive_and_utc
+PASSED tests/test_api.py::test_other_filters
+PASSED tests/test_api.py::test_combined_filters
+PASSED tests/test_api.py::test_paging_and_sort
+PASSED tests/test_api.py::test_detail_and_unknown
+PASSED tests/test_api.py::test_verify_endpoint_against_real_fixture
+PASSED tests/test_api.py::test_tags_and_stats
+PASSED tests/test_api.py::test_health_reports_unreachable_hornet
+PASSED tests/test_api.py::test_health_uses_real_info_fields
+PASSED tests/test_api.py::test_trace_id_stored_and_searchable
+PASSED tests/test_api.py::test_trace_id_must_be_path_safe_and_at_most_128[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
+PASSED tests/test_api.py::test_trace_id_must_be_path_safe_and_at_most_128[]
+PASSED tests/test_api.py::test_trace_id_must_be_path_safe_and_at_most_128[a/b]
+PASSED tests/test_api.py::test_trace_id_must_be_path_safe_and_at_most_128[a b]
+PASSED tests/test_api.py::test_trace_id_must_be_path_safe_and_at_most_128[a?b]
+PASSED tests/test_api.py::test_startup_adds_missing_trace_column
+PASSED tests/test_api.py::test_traces_list_and_timeline_order
+PASSED tests/test_api.py::test_trace_verify_checks_every_event_against_hornet
+PASSED tests/test_api.py::test_tangle_copy_returns_decoded_block
+PASSED tests/test_api.py::test_tangle_copy_errors
+PASSED tests/test_api.py::test_overlong_metadata_is_422_not_500[message_type-64]
+PASSED tests/test_api.py::test_overlong_metadata_is_422_not_500[source-128]
+PASSED tests/test_api.py::test_overlong_metadata_is_422_not_500[node-128]
+PASSED tests/test_api.py::test_overlong_metadata_is_422_not_500[tag-128]
+PASSED tests/test_api.py::test_tangle_copy_malformed_hornet_is_502
+PASSED tests/test_messages_api.py::test_upload_keeps_upstream_200_and_shape
+PASSED tests/test_messages_api.py::test_hornet_body_matches_upstream_encoding
+PASSED tests/test_messages_api.py::test_forward_carries_exact_bytes_sent_to_hornet
+PASSED tests/test_messages_api.py::test_explorer_down_upload_still_succeeds_and_forward_is_retried
+PASSED tests/test_messages_api.py::test_explorer_down_for_good_gives_up_after_retries
+PASSED tests/test_messages_api.py::test_hornet_rejection_is_not_forwarded
+PASSED tests/test_messages_api.py::test_hornet_unreachable
+PASSED tests/test_messages_api.py::test_missing_fields
+PASSED tests/test_messages_api.py::test_tag_over_64_bytes_goes_to_hornet_like_upstream
+PASSED tests/test_messages_api.py::test_trace_is_forwarded_not_written_on_chain
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[]
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[42]
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[bad3]
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[a/b]
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[a b]
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[\xfc]
+PASSED tests/test_messages_api.py::test_accepted_block_is_also_published_to_mqtt
+PASSED tests/test_messages_api.py::test_mqtt_trouble_never_fails_the_upload[fake0]
+PASSED tests/test_messages_api.py::test_mqtt_trouble_never_fails_the_upload[fake1]
+PASSED tests/test_messages_api.py::test_rejected_block_is_not_published
+PASSED tests/test_messages_api.py::test_invalid_type_or_source_rejected_before_hornet[type-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
+PASSED tests/test_messages_api.py::test_invalid_type_or_source_rejected_before_hornet[source-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
+PASSED tests/test_messages_api.py::test_invalid_type_or_source_rejected_before_hornet[type-5]
+PASSED tests/test_messages_api.py::test_invalid_type_or_source_rejected_before_hornet[source-bad3]
+PASSED tests/test_mqtt.py::test_mqtt_record_is_stored_with_provenance
+PASSED tests/test_mqtt.py::test_second_path_is_a_no_op_first_path_wins
+PASSED tests/test_mqtt.py::test_invalid_mqtt_records_are_dropped
+PASSED tests/test_mqtt.py::test_alerts_are_published_to_mqtt
+PASSED tests/test_mqtt.py::test_mqtt_disabled_by_default
+PASSED tests/test_mqtt.py::test_ack_only_after_store_succeeds
+PASSED tests/test_mqtt.py::test_store_keeps_failing_leaves_message_unacked
+PASSED tests/test_mqtt.py::test_invalid_record_is_acked_and_dropped
+PASSED tests/test_verify.py::test_identical_block_matches
+PASSED tests/test_verify.py::test_tag_changed_in_db
+PASSED tests/test_verify.py::test_tag_text_changed_in_db_only
+PASSED tests/test_verify.py::test_data_hex_changed_in_db
+PASSED tests/test_verify.py::test_decoded_json_changed_in_db_only
+PASSED tests/test_verify.py::test_sha256_changed_in_db_only
+PASSED tests/test_verify.py::test_payload_type_not_tagged_data
+PASSED tests/test_verify.py::test_non_utf8_chain_data_is_a_mismatch_not_a_crash
+PASSED tests/test_verify.py::test_confirmed_with_milestone_time
+PASSED tests/test_verify.py::test_pending_uses_real_pre_reference_metadata
+PASSED tests/test_verify.py::test_not_solid
+PASSED tests/test_verify.py::test_conflicting
+PASSED tests/test_verify.py::test_metadata_404_is_not_found
+PASSED tests/test_verify.py::test_block_404_after_metadata_is_not_found
+PASSED tests/test_verify.py::test_content_mismatch_takes_precedence[meta0]
+PASSED tests/test_verify.py::test_content_mismatch_takes_precedence[meta1]
+PASSED tests/test_verify.py::test_content_mismatch_takes_precedence[meta2]
+PASSED tests/test_verify.py::test_content_mismatch_takes_precedence[meta3]
+PASSED tests/test_verify.py::test_hornet_failure_is_error_and_keeps_last_known_state[500]
+PASSED tests/test_verify.py::test_hornet_failure_is_error_and_keeps_last_known_state[503]
+PASSED tests/test_verify.py::test_hornet_failure_is_error_and_keeps_last_known_state[fail2]
+PASSED tests/test_verify.py::test_hornet_failure_is_error_and_keeps_last_known_state[fail3]
+PASSED tests/test_verify.py::test_every_check_appends_a_validation_row
+PASSED tests/test_verify.py::test_non_json_hornet_body_is_error_not_crash
+PASSED tests/test_verify.py::test_non_hex_chain_data_is_error_not_crash
+SKIPPED [1] tests/test_alerts.py:134: row locking is a PostgreSQL feature; compose runs PostgreSQL
+114 passed, 1 skipped, 1 deselected in 21.82s

@@ -1,0 +1,132 @@
+{
+  "explorer": "http://advanced-explorer:8090",
+  "api": "http://iota-messages-api:5555",
+  "records": {
+    "0x9e1b357d5283b946c78a93393eea7d27e423bd3b9ba3510e47571b6eb3fe205c": {
+      "block_id": "0x9e1b357d5283b946c78a93393eea7d27e423bd3b9ba3510e47571b6eb3fe205c",
+      "tag": "smoke.2b0f0021",
+      "message_type": "smoke",
+      "source": "smoke/2b0f0021",
+      "node": "iota-hornet",
+      "trace_id": null,
+      "received_via": "mqtt",
+      "message": {
+        "run": "2b0f0021",
+        "i": 0
+      },
+      "data_sha256": "691576e2d172e6c304ee3f03ee7fb147823fe48397ff7b1270c6376f807bf07b",
+      "submitted_at": "2026-10-06T18:08:54Z",
+      "received_at": "2026-10-06T18:08:54Z",
+      "verification": {
+        "status": "confirmed",
+        "is_solid": true,
+        "content_match": true,
+        "milestone_index": 1980,
+        "milestone_time": "2026-10-06T18:08:56Z",
+        "ledger_inclusion_state": "noTransaction",
+        "last_checked_at": "2026-10-06T18:08:56Z",
+        "check_count": 1
+      },
+      "raw": {
+        "tag_hex": "0x736d6f6b652e3262306630303231",
+        "data_hex": "0x7b2272756e223a20223262306630303231222c202269223a20307d"
+      },
+      "history": [
+        {
+          "checked_at": "2026-10-06T18:08:56Z",
+          "status": "confirmed",
+          "is_solid": true,
+          "milestone_index": 1980,
+          "ledger_inclusion_state": "noTransaction",
+          "tag_match": true,
+          "data_match": true,
+          "detail": "referenced by milestone 1980"
+        }
+      ]
+    },
+    "0x9b19328c438583028770427c2e0c39d3b97214879fa11e6bfd5f27a1046acc9c": {
+      "block_id": "0x9b19328c438583028770427c2e0c39d3b97214879fa11e6bfd5f27a1046acc9c",
+      "tag": "smoke.2b0f0021",
+      "message_type": "smoke",
+      "source": "smoke/2b0f0021",
+      "node": "iota-hornet",
+      "trace_id": null,
+      "received_via": "mqtt",
+      "message": {
+        "run": "2b0f0021",
+        "i": 1
+      },
+      "data_sha256": "06e84d547e5b293e3a4c0df3c11c492f3699f72f635b7b7930c9609e09d8ae44",
+      "submitted_at": "2026-10-06T18:08:54Z",
+      "received_at": "2026-10-06T18:08:54Z",
+      "verification": {
+        "status": "confirmed",
+        "is_solid": true,
+        "content_match": true,
+        "milestone_index": 1980,
+        "milestone_time": "2026-10-06T18:08:56Z",
+        "ledger_inclusion_state": "noTransaction",
+        "last_checked_at": "2026-10-06T18:08:56Z",
+        "check_count": 1
+      },
+      "raw": {
+        "tag_hex": "0x736d6f6b652e3262306630303231",
+        "data_hex": "0x7b2272756e223a20223262306630303231222c202269223a20317d"
+      },
+      "history": [
+        {
+          "checked_at": "2026-10-06T18:08:56Z",
+          "status": "confirmed",
+          "is_solid": true,
+          "milestone_index": 1980,
+          "ledger_inclusion_state": "noTransaction",
+          "tag_match": true,
+          "data_match": true,
+          "detail": "referenced by milestone 1980"
+        }
+      ]
+    },
+    "0x3b14b9aa3eb2a199ad22cf2d9ec0208d646404feb5d326fa28f777f5c1a401f3": {
+      "block_id": "0x3b14b9aa3eb2a199ad22cf2d9ec0208d646404feb5d326fa28f777f5c1a401f3",
+      "tag": "smoke.2b0f0021",
+      "message_type": "smoke",
+      "source": "smoke/2b0f0021",
+      "node": "iota-hornet",
+      "trace_id": null,
+      "received_via": "mqtt",
+      "message": {
+        "run": "2b0f0021",
+        "i": 2
+      },
+      "data_sha256": "3d1682b28e4ddd7ee3151887bb24abb3dc0c781f2cd8be066d74da4139c6990f",
+      "submitted_at": "2026-10-06T18:08:54Z",
+      "received_at": "2026-10-06T18:08:54Z",
+      "verification": {
+        "status": "confirmed",
+        "is_solid": true,
+        "content_match": true,
+        "milestone_index": 1980,
+        "milestone_time": "2026-10-06T18:08:56Z",
+        "ledger_inclusion_state": "noTransaction",
+        "last_checked_at": "2026-10-06T18:08:56Z",
+        "check_count": 1
+      },
+      "raw": {
+        "tag_hex": "0x736d6f6b652e3262306630303231",
+        "data_hex": "0x7b2272756e223a20223262306630303231222c202269223a20327d"
+      },
+      "history": [
+        {
+          "checked_at": "2026-10-06T18:08:56Z",
+          "status": "confirmed",
+          "is_solid": true,
+          "milestone_index": 1980,
+          "ledger_inclusion_state": "noTransaction",
+          "tag_match": true,
+          "data_match": true,
+          "detail": "referenced by milestone 1980"
+        }
+      ]
+    }
+  }
+}

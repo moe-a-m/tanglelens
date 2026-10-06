@@ -1,0 +1,68 @@
+{{- if .Values.isMainDomain }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "coordinator.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "coordinator.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "coordinator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "coordinator.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.coordinator.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.mainIE }}
+      {{- with .Values.coordinator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.coordinator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 300
+      initContainers:
+        - name: delay-init
+          image: busybox
+          command: ['sh', '-c', 'echo "Waiting for 45 seconds"; sleep 45;']
+      containers:
+      - name: coordinator
+        securityContext:
+          {{- toYaml .Values.coordinator.securityContext | nindent 12 }}
+        image: "{{ .Values.coordinator.image.repository }}:{{ .Values.coordinator.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.coordinator.image.pullPolicy }}
+        ports:
+          - containerPort: 6060
+            protocol: TCP
+        args: [
+          "--inx.address=$(NODE_IP):9029",
+          "--coordinator.stateFilePath=state/coordinator.state",
+          "--coordinator.blockBackups.enabled=false",
+          "--coordinator.interval=20s",
+          "--profiling.enabled=true",
+          "--profiling.bindAddress=0.0.0.0:6060"
+        ]
+        env:
+        - name: COO_PRV_KEYS
+          value: {{ .Values.coordinator.envVars.COO_PRV_KEYS | quote }}
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        volumeMounts:
+        - name: state
+          mountPath: /app/state
+      volumes:
+      - name: state
+        persistentVolumeClaim:
+          claimName: state-{{ include "network.name" . }}-pvc
+{{- end }}

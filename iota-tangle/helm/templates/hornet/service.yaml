@@ -1,0 +1,47 @@
+{{- if .Values.hornet.services.clusterIP }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hornet.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "hornet.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.hornet.services.clusterIP.type }}
+  ports:
+    {{- range .Values.hornet.services.clusterIP.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol }}
+    {{- end }}
+  selector:
+    {{- include "hornet.selectorLabels" . | nindent 4 }}
+{{- end }}
+
+---
+
+{{- if .Values.isMainDomain }}
+{{- if .Values.hornet.services.nodePort }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hornet.name" . }}-ext
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "hornet.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.hornet.services.nodePort.type }}
+  ports:
+    {{- range .Values.hornet.services.nodePort.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol }}
+      nodePort: {{ .nodePort }}
+    {{- end }}
+  selector:
+    {{- include "hornet.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/hornet: coordinator
+{{- end }}
+{{- end }}

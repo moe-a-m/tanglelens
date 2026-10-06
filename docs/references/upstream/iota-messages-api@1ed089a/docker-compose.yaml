@@ -1,0 +1,17 @@
+# To build a custom file run:
+# docker compose up -d --build 
+
+services:
+  iota-messages-api:
+    image: eclipseaerios/iota-messages-api:1.0.2
+    container_name: iota-messages-api
+    restart: unless-stopped
+    ports:
+      - "5555:5555"
+    networks:
+      - hornet
+ 
+networks:
+  hornet:
+    name: ${HORNET_NETWORK:-iota-net}
+    external: true

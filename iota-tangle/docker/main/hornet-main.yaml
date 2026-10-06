@@ -1,0 +1,66 @@
+version: '3.5'
+
+services:
+
+  inx-coordinator:
+    container_name: inx-coordinator
+    image: iotaledger/inx-coordinator:1.0
+    depends_on:
+      - iota-hornet
+    environment:
+      - "COO_PRV_KEYS=651941eddb3e68cb1f6ef4ef5b04625dcf5c70de1fdc4b1c9eadb2c219c074e0ed3c3f1a319ff4e909cf2771d79fece0ac9bd9fd2ee49ea6c0885c9cb3b1248c,0e324c6ff069f31890d496e9004636fd73d8e8b5bea08ec58a4178ca85462325f6752f5f46a53364e2ee9c4d662d762a81efd51010282a75cd6bd03f28ef349c"
+    ports:
+      - "6021:6060/tcp"
+    volumes:
+      - ./privatedb/state:/app/state
+    command:
+      - "--inx.address=iota-hornet:9029"
+      - "--coordinator.stateFilePath=state/coordinator.state"
+      - "--coordinator.blockBackups.enabled=false"
+
+  ## THIS IS THE BASE HORNET NODE
+  ## If you wish to add more hornets, reuse this code below
+  ## Please remember to change files such as "container_name" and "--node.alias"
+  iota-hornet:
+    image: iotaledger/hornet:2.0
+    container_name: iota-hornet
+    ports:
+      - "30506:15600"
+      - "14265:14265"
+      - "9029:9029"
+      - "6011:6060/tcp"
+    volumes:
+      - ../config_private_tangle.json:/app/config_private_tangle.json:ro
+      - ./privatedb/hornet:/app/privatedb
+      - ./snapshots/hornet:/app/snapshots
+    command: 
+      - "-c"
+      - "config_private_tangle.json"
+      - "--node.alias=hornet-node"
+      - "--inx.enabled=true"
+      - "--inx.bindAddress=0.0.0.0:9029"
+      - "--debug.enabled=true"
+  
+  ##Default credentials are admin/admin
+  iota-inx-dashboard:
+    image: iotaledger/inx-dashboard:1.0
+    container_name: iota-inx-dashboard
+    depends_on:
+      - iota-hornet
+    ports:
+      - "31031:6060"
+      - "31011:8081"
+    command: 
+      - "--inx.address=iota-hornet:9029"
+      - "--dashboard.bindAddress=0.0.0.0:8081"
+      - "--dashboard.auth.passwordHash=577eb97f8faf2af47ff957b00827d6bfe9d05b810981e3073dc42553505282c1"
+      - "--dashboard.auth.passwordSalt=e5d8d0bd3bb9723236177b4713a11580c55b69a51e7055dd11fa1dad3b8f6d6c"
+      - "--prometheus.enabled=false"
+      - "--prometheus.goMetrics=false"
+      - "--prometheus.processMetrics=false"
+      - "--prometheus.promhttpMetrics=false"
+      - "--profiling.enabled=false"
+
+networks:
+  default:
+    name: iota-net

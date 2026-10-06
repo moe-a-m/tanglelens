@@ -1,0 +1,97 @@
+{{- if .Values.isMainDomain }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hornet.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "hornet.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/hornet: coordinator
+  template:
+    metadata:
+      labels:
+        {{- include "hornet.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/hornet: coordinator
+    spec:
+      {{- with .Values.hornet.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hornet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - {{ .Values.mainIE }}
+      terminationGracePeriodSeconds: 300
+      hostNetwork: true
+      initContainers:
+        - name: delay-init
+          image: busybox
+          command: ['sh', '-c', 'echo "Waiting for 10 seconds"; sleep 10;']
+      containers:
+      - name: hornet
+        securityContext:
+          {{- toYaml .Values.hornet.securityContext | nindent 12 }}
+        image: "{{ .Values.hornet.image.repository }}:{{ .Values.hornet.image.tag }}"
+        imagePullPolicy: {{ .Values.hornet.image.pullPolicy }}
+        ports:
+        - containerPort: 14626
+          protocol: TCP
+        - containerPort: 15600
+          protocol: TCP
+        - containerPort: 14265
+          protocol: TCP
+        - containerPort: 9311
+          protocol: TCP
+        - containerPort: 9029
+          protocol: TCP
+        - containerPort: 6060
+          protocol: TCP
+        args: [
+          "-c",
+          "config_private_tangle.json",
+          "--node.alias=hornet-$(MY_NODE_NAME)",
+          "--inx.enabled=true",
+          "--inx.bindAddress=0.0.0.0:9029",
+          "--debug.enabled=true",
+          "--prometheus.enabled=true",
+          "--prometheus.bindAddress=0.0.0.0:9311",
+          "--profiling.enabled=true",
+          "--profiling.bindAddress=0.0.0.0:6060"
+        ]
+        env:
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: private-tangle
+          mountPath: /app/config_private_tangle.json
+          subPath: config_private_tangle.json
+          readOnly: true
+        - name: privatedb
+          mountPath: /app/privatedb
+        - name: snapshots
+          mountPath: /app/snapshots
+      volumes:
+      - name: private-tangle
+        configMap: 
+          name: private-tangle-config
+      - name: snapshots
+        persistentVolumeClaim:
+          claimName: snapshots-{{ include "snapshots.name" . }}-pvc
+      - name: privatedb
+        persistentVolumeClaim:
+          claimName: privatedb-{{ include "network.name" . }}-pvc
+{{- end }}

@@ -1,0 +1,21 @@
+{{- if .Values.api.services.nodePort }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "api.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "api.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.api.services.nodePort.type }}
+  ports:
+    {{- range .Values.api.services.nodePort.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol }}
+      nodePort: {{ .nodePort }}
+    {{- end }}
+  selector:
+    {{- include "api.selectorLabels" . | nindent 4 }}
+{{- end }}

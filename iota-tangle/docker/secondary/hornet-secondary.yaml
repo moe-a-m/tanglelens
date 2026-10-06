@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  iota-hornet-7:
+    image: iotaledger/hornet:2.0
+    container_name: hornet-node
+    ports:
+      - "30506:15600"
+      - "14265:14265"
+      - "9029:9029"
+    volumes:
+      - ../config_private_tangle.json:/app/config_private_tangle.json:ro
+    command: 
+      - "-c"
+      - "config_private_tangle.json"
+      - "--node.alias=hornet-node"
+      - "--inx.enabled=true"
+      - "--inx.bindAddress=0.0.0.0:9029"
+      - "--debug.enabled=true"
+  
+  iota-inx-dashboard:
+    image: iotaledger/inx-dashboard:1.0
+    container_name: inx-dashboard
+    ports:
+      - "31031:6060"
+      - "31011:8081"
+    command: 
+      - "--inx.address=hornet-7:9029"
+      - "--dashboard.bindAddress=0.0.0.0:8081"
+      - "--dashboard.auth.passwordHash=577eb97f8faf2af47ff957b00827d6bfe9d05b810981e3073dc42553505282c1"
+      - "--dashboard.auth.passwordSalt=e5d8d0bd3bb9723236177b4713a11580c55b69a51e7055dd11fa1dad3b8f6d6c"
+      - "--dashboard.auth.identityPrivateKey=0fce8eb09ff4aa206e23f1b228cf44ff0ffd3cd093c39ccd54f5ad598ce38f97a51b8a9186847f0523974d642b4d67c5a5db50dab77e2d3c27d8f6c564ba97fe"
+      - "--prometheus.enabled=false"
+      - "--prometheus.goMetrics=false"
+      - "--prometheus.processMetrics=false"
+      - "--prometheus.promhttpMetrics=false"
+      - "--profiling.enabled=false"

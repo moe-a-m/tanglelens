@@ -1,0 +1,8 @@
+This Helm chart has been created using the Helm chart generator!
+
+Available at: https://github.com/ravaga/helm-chart-generator
+
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+

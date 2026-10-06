@@ -1,0 +1,47 @@
+{{- if .Values.isMainDomain }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: privatedb-{{ include "network.name" . }}-pvc
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.network.persistence.size | quote }}
+{{- end }}
+
+---
+
+{{- if .Values.isMainDomain }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: state-{{ include "network.name" . }}-pvc
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.network.persistence.size | quote }}
+{{- end }}
+
+---
+
+{{- if .Values.isMainDomain }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: snapshots-{{ include "snapshots.name" . }}-pvc
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  accessModes:
+  {{- range .Values.snapshots.persistence.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.snapshots.persistence.size | quote }}
+{{- end }}

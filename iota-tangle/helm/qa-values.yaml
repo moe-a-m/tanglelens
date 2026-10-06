@@ -1,0 +1,267 @@
+# Default values for enabler.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# String to partially override enabler.fullname template (will maintain the release name).
+nameOverride: ""
+# String to fully override enabler.fullname template.
+fullnameOverride: ""
+# Deploy all the components in specific K8s node(s).
+chartNodeSelector: {}
+
+# Configure the IOTA installation as the main domain of the IOTA Tangle in the Continuum. Usually it's the entrypoint domain.
+isMainDomain: false
+# Main Infrastructure Element of the Domain
+mainIE: ""
+
+# Component network values.
+network:
+  tier: external
+  replicaCount: 1
+
+  # Configuration of the container image.
+  imagePullSecrets: []
+  image:
+    repository: iotaledger/hornet
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "2.0"
+    pullPolicy: IfNotPresent
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+
+  podSecurityContext: {}
+  securityContext: {}
+    
+  envVars:
+    COO_PRV_KEYS: 651941eddb3e68cb1f6ef4ef5b04625dcf5c70de1fdc4b1c9eadb2c219c074e0ed3c3f1a319ff4e909cf2771d79fece0ac9bd9fd2ee49ea6c0885c9cb3b1248c,0e324c6ff069f31890d496e9004636fd73d8e8b5bea08ec58a4178ca85462325f6752f5f46a53364e2ee9c4d662d762a81efd51010282a75cd6bd03f28ef349c
+
+  persistence:
+    accessModes:
+      - ReadWriteOnce
+    size: 100Mi
+
+  # Configure this parameters to deploy the component in specific K8s node(s).
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Component snapshots values
+snapshots:
+  tier: external
+  replicaCount: 1
+  mintAddress: "tst1qq2kvnu9pqzptkggrpqrvltvagccsh6aj2fkdhla7p3lrsy9dwhdzu5l2ye"
+  genesisAddresses: "tst1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vlupxvxq2:1000000000000,tst1qqweu75ldpyann5jsthqsa6m0thx4tmqxncj6uqxf5q974pmqx30y5mcdp2:1000000000000"
+
+  # Configuration of the container image.
+  imagePullSecrets: []
+  image:
+    repository: iotaledger/hornet
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "2.0"
+    pullPolicy: IfNotPresent
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+
+  podSecurityContext: {}
+  securityContext: {}
+
+  persistence:
+    accessModes:
+      - ReadWriteOnce
+    size: 100Mi
+
+  # Configure this parameters to deploy the component in specific K8s node(s).
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Component peerer values
+peerer:
+  # Configuration of the container image.
+  imagePullSecrets: []
+  image:
+    repository: eclipseaerios/iota-tangle-peerer
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+# Component hornet values.
+hornet:
+  tier: external
+  replicaCount: 1
+  nodeIndex: '{{ index . "kubernetes.io/hostname" }}'
+
+  # Configuration of the container image.
+  imagePullSecrets: []
+  image:
+    repository: iotaledger/hornet
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "2.0"
+    pullPolicy: IfNotPresent
+
+  services:
+    clusterIP:
+      type: ClusterIP
+      ports:
+        - name: port-14265
+          port: 14265
+          targetPort: 14265
+          protocol: TCP
+        - name: port-9311
+          port: 9311
+          targetPort: 9311
+          protocol: TCP
+        - name: port-9029
+          port: 9029
+          targetPort: 9029
+          protocol: TCP
+        - name: port-6060
+          port: 6060
+          targetPort: 6060
+          protocol: TCP
+    nodePort:
+      type: NodePort
+      ports:
+        - name: port-15600
+          port: 15600
+          targetPort: 15600
+          nodePort: 30500
+          protocol: TCP
+  
+  resources: {}
+
+  autoscaling:
+    enabled: false
+
+  podSecurityContext: {}
+  securityContext: {}
+
+  # Configure this parameters to deploy the component in specific K8s node(s).
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  rbac:
+    enabled: true
+
+#Component coordinator values
+coordinator:
+  tier: external
+  replicaCount: 1
+
+  # Configuration of the container image.
+  imagePullSecrets: []
+  image:
+    repository: iotaledger/inx-coordinator
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "1.0"
+    pullPolicy: IfNotPresent
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+
+  podSecurityContext: {}
+  securityContext: {}
+    
+  envVars:
+    COO_PRV_KEYS: 651941eddb3e68cb1f6ef4ef5b04625dcf5c70de1fdc4b1c9eadb2c219c074e0ed3c3f1a319ff4e909cf2771d79fece0ac9bd9fd2ee49ea6c0885c9cb3b1248c,0e324c6ff069f31890d496e9004636fd73d8e8b5bea08ec58a4178ca85462325f6752f5f46a53364e2ee9c4d662d762a81efd51010282a75cd6bd03f28ef349c
+
+  # Configure this parameters to deploy the component in specific K8s node(s).
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+#Component dashboard values
+dashboard:
+  username: "admin"
+  passwordHash: "577eb97f8faf2af47ff957b00827d6bfe9d05b810981e3073dc42553505282c1"
+  passwordSalt: "e5d8d0bd3bb9723236177b4713a11580c55b69a51e7055dd11fa1dad3b8f6d6c"
+  identityPrivateKey: "1f46fad4f538a031d4f87f490f6bca4319dfd0307636a5759a22b5e8874bd608f9156ba976a12918c16a481c38c88a7b5351b769adc30390e93b6c0a63b09b79"
+
+  tier: external
+  replicaCount: 1
+
+  # Configuration of the container image.
+  imagePullSecrets: []
+  image:
+    repository: iotaledger/inx-dashboard
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "1.0"
+    pullPolicy: IfNotPresent
+  
+  services:
+    nodePort:
+      type: NodePort
+      ports:
+        - name: port-6060
+          port: 6060
+          targetPort: 6060
+          nodePort: 31031
+          protocol: TCP
+        - name: port-8081
+          port: 8081
+          targetPort: 8081
+          nodePort: 31011
+          protocol: TCP
+        - name: port-9311
+          port: 9311
+          targetPort: 9311
+          nodePort: 31331
+          protocol: TCP
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+
+  podSecurityContext: {}
+  securityContext: {}
+
+  # Configure this parameters to deploy the component in specific K8s node(s).
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+#Component api values
+api:
+  tier: external
+  replicaCount: 1
+
+  # Configuration of the container image.
+  imagePullSecrets: []
+  image:
+    repository: eclipseaerios/iota-messages-api
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  services:
+    nodePort:
+      type: NodePort
+      ports:
+        - name: port-6000
+          port: 6000
+          targetPort: 5555
+          nodePort: 30634
+          protocol: TCP
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+
+  podSecurityContext: {}
+  securityContext: {}
+
+  # Configure this parameters to deploy the component in specific K8s node(s).
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

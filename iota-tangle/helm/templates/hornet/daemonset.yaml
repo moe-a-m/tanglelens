@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "hornet.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "hornet.selectorLabels" . | nindent 6 }}    
+  template:
+    metadata:
+      labels:
+        {{- include "hornet.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.hornet.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.chartNodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if not .Values.chartNodeSelector }}
+        {{- with .Values.hornet.nodeSelector }}
+      nodeSelector:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.hornet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+      {{- if .Values.isMainDomain }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: NotIn
+                values:
+                - {{ .Values.mainIE }}
+      {{- else}}
+        {{- toYaml .Values.hornet.affinity | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 300
+      hostNetwork: true
+      {{- if .Values.hornet.rbac.enabled }}
+      serviceAccountName: {{ include "hornet.name" . }}
+      {{- else}}
+      serviceAccountName: default
+      {{- end }}
+      containers:
+      - name: hornet
+        securityContext:
+          {{- toYaml .Values.hornet.securityContext | nindent 12 }}
+        image: "{{ .Values.hornet.image.repository }}:{{ .Values.hornet.image.tag }}"
+        imagePullPolicy: {{ .Values.hornet.image.pullPolicy }}
+        ports:
+        - containerPort: 14626
+          protocol: TCP
+        - containerPort: 15600
+          protocol: TCP
+        - containerPort: 14265
+          protocol: TCP
+        - containerPort: 9311
+          protocol: TCP
+        - containerPort: 9029
+          protocol: TCP
+        - containerPort: 6060
+          protocol: TCP
+        args: [
+          "-c",
+          "config_private_tangle.json",
+          "--node.alias=hornet-$(MY_NODE_NAME)",
+          "--inx.enabled=true",
+          "--inx.bindAddress=0.0.0.0:9029",
+          "--debug.enabled=true",
+          "--prometheus.enabled=true",
+          "--prometheus.bindAddress=0.0.0.0:9311",
+          "--profiling.enabled=true",
+          "--profiling.bindAddress=0.0.0.0:6060"
+        ]
+        env:
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: private-tangle
+          mountPath: /app/config_private_tangle.json
+          subPath: config_private_tangle.json
+          readOnly: true
+        - mountPath: /app/p2pstore
+          name: p2pstore
+      - name: peerer
+        securityContext:
+          {{- toYaml .Values.peerer.securityContext | nindent 12 }}
+        image: "{{ .Values.peerer.image.repository }}:{{ .Values.peerer.image.tag }}"
+        imagePullPolicy: {{ .Values.peerer.image.pullPolicy }}
+        args: [
+          "--main-node-name={{ .Values.mainIE }}",
+          "--iota-hornet-selector=app.kubernetes.io/component=hornet",
+          "--iota-hornet-ns={{ .Release.Namespace }}",
+          "--private-key-file=/p2pstore/identity.key"
+        ]
+        env:
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: MY_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        volumeMounts:
+        - mountPath: /p2pstore
+          name: p2pstore
+      volumes:
+      - name: private-tangle
+        configMap: 
+          name: private-tangle-config
+      - emptyDir: {}
+        name: p2pstore

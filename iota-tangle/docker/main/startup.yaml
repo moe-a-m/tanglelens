@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  create-snapshots:
+    container_name: create-snapshots
+    image: iotaledger/hornet:2.0
+    volumes:
+      - ../protocol_parameters.json:/app/protocol_parameters.json:ro
+      - ./snapshots:/app/snapshots
+    command:
+      - "tool"
+      - "snap-gen"
+      - "--protocolParametersPath=/app/protocol_parameters.json"
+      - "--mintAddress=tst1qq2kvnu9pqzptkggrpqrvltvagccsh6aj2fkdhla7p3lrsy9dwhdzu5l2ye"
+      - "--genesisAddresses=tst1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vlupxvxq2:1000000000000,tst1qqweu75ldpyann5jsthqsa6m0thx4tmqxncj6uqxf5q974pmqx30y5mcdp2:1000000000000"
+      - "--outputPath=/app/snapshots/hornet/full_snapshot.bin"
+    
+  bootstrap-network:
+    container_name: bootstrap-network
+    image: iotaledger/hornet:2.0
+    environment:
+      - "COO_PRV_KEYS=651941eddb3e68cb1f6ef4ef5b04625dcf5c70de1fdc4b1c9eadb2c219c074e0ed3c3f1a319ff4e909cf2771d79fece0ac9bd9fd2ee49ea6c0885c9cb3b1248c,0e324c6ff069f31890d496e9004636fd73d8e8b5bea08ec58a4178ca85462325f6752f5f46a53364e2ee9c4d662d762a81efd51010282a75cd6bd03f28ef349c"
+    volumes:
+      - ../config_private_tangle.json:/app/config_private_tangle.json:ro
+      - ./snapshots/hornet:/app/snapshots
+      - ./privatedb/hornet:/app/privatedb
+      - ./privatedb/state:/app/state
+    command:
+      - "tool"
+      - "bootstrap-private-tangle"
+      - "--configFile=/app/config_private_tangle.json"
+      - "--snapshotPath=/app/snapshots/full_snapshot.bin"
+      - "--databasePath=/app/privatedb"
+      - "--cooStatePath=/app/state/coordinator.state"

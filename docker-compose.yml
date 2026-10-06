@@ -48,6 +48,7 @@ services:
       dockerfile: tests/Dockerfile
     volumes:
       - .:/repo:ro
+      - ./reports:/repo/reports
     environment:
       EXPLORER_URL: ${EXP_INTERNAL:-http://advanced-explorer:8090}
       MESSAGES_API_URL: http://iota-messages-api:5555

@@ -230,3 +230,25 @@ def test_trace_verify_checks_every_event_against_hornet(monkeypatch):
     tl = client.post("/api/traces/t-1/verify").json()
     assert tl["verified"] is False and tl["problems"] == 1
     assert {e["block_id"]: e["verification"]["status"] for e in tl["timeline"]}[bid(30)] == "content_mismatch"
+
+
+# ---------- live Tangle copy (DESIGN D13) ----------
+def test_tangle_copy_returns_decoded_block(monkeypatch):
+    import json
+    payload = BLOCK["payload"]
+    client.post("/api/ingest", json={"block_id": BLOCK_ID, "tag": "x", "message": {"forged": True}})
+    monkeypatch.setattr(main, "hornet", fake_hornet())
+    d = client.get(f"/api/messages/{BLOCK_ID}/tangle").json()
+    assert d["tag"] == bytes.fromhex(payload["tag"][2:]).decode()
+    assert d["message"] == json.loads(bytes.fromhex(payload["data"][2:]))
+    assert (d["tag_hex"], d["data_hex"], d["payload_type"]) == (payload["tag"], payload["data"], 5)
+    assert client.get(f"/api/messages/{BLOCK_ID}").json()["message"] == {"forged": True}   # nothing stored
+
+
+def test_tangle_copy_errors(monkeypatch):
+    assert client.get(f"/api/messages/{bid(77)}/tangle").status_code == 404           # unknown to explorer
+    ingest(77)
+    monkeypatch.setattr(main, "hornet", fake_hornet(block=None))
+    assert client.get(f"/api/messages/{bid(77)}/tangle").status_code == 404           # unknown to Hornet
+    monkeypatch.setattr(main, "hornet", fake_hornet(fail=httpx.ConnectError("down")))
+    assert client.get(f"/api/messages/{bid(77)}/tangle").status_code == 502

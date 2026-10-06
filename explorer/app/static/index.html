@@ -75,6 +75,11 @@ a.link{color:var(--focus);cursor:pointer;text-decoration:underline;text-underlin
 .tl li::before{content:"";position:absolute;left:-25px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--muted);border:2px solid var(--paper)}
 .tl li.ok::before{background:var(--ok)}.tl li.wait::before{background:var(--wait)}.tl li.bad::before{background:var(--bad)}
 .tl .when{font-size:12.5px;color:var(--muted)}
+.cmp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.cmp h3{font-size:13px;font-weight:600;margin:0 0 6px}
+.cmp .tangle pre{border-color:var(--ok)}.cmp .stored pre{border-color:var(--bad)}
+.diffkeys{font-size:13.5px;margin:8px 0 0}
+@media (max-width:600px){.cmp{grid-template-columns:1fr}}
 @media (max-width:860px){main{grid-template-columns:1fr}#list,#detail{max-height:none}#list{border-right:0;border-bottom:1px solid var(--rule)}}
 @media (max-width:600px){th:nth-child(4),td:nth-child(4){display:none}.filters input{width:100%!important}.filters label{flex:1 1 140px}}
 @media (prefers-reduced-motion:no-preference){tr.row{transition:background .12s}}
@@ -211,8 +216,10 @@ async function showDetail(id){
     </ul>
     <div class="actions"><button onclick="reverify('${m.block_id}')">Verify again</button>
       <button class="quiet" onclick="navigator.clipboard.writeText('${m.block_id}')">Copy block ID</button></div>
-    <h2>Message</h2>
-    <pre>${esc(JSON.stringify(m.message, null, 2))}</pre>
+    <div id="cmp-slot">${v.status === "content_mismatch" && cmpCache[m.block_id] ? cmpCache[m.block_id] : `
+      <h2>Message</h2>
+      <pre>${esc(JSON.stringify(m.message, null, 2))}</pre>`}
+    </div>
     <h2>Details</h2>
     <dl>
       <dt>Block ID</dt><dd class="id">${m.block_id}</dd>
@@ -235,6 +242,25 @@ async function showDetail(id){
     </tbody></table>
     <h2>Raw bytes sent to Hornet</h2>
     <dl><dt>tag (hex)</dt><dd class="id">${m.raw.tag_hex}</dd><dt>data (hex)</dt><dd class="id">${m.raw.data_hex}</dd></dl>`;
+  if (v.status === "content_mismatch") showComparison(m);
+}
+
+const cmpCache = {};   // block id -> last rendered comparison, so the 5 s refresh does not flicker
+async function showComparison(m){
+  const r = await fetch(`/api/messages/${encodeURIComponent(m.block_id)}/tangle`);
+  const slot = document.getElementById("cmp-slot");
+  if (!r.ok || !slot || state.selected !== m.block_id) return;
+  const t = await r.json();
+  const a = m.message ?? {}, b = t.message ?? {};
+  const keys = (typeof a === "object" && typeof b === "object")
+    ? [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(k => JSON.stringify(a[k]) !== JSON.stringify(b[k])) : [];
+  const tagNote = t.tag !== m.tag ? `<p class="diffkeys">Tag differs: stored <b>${esc(m.tag)}</b>, on the Tangle <b>${esc(t.tag)}</b>.</p>` : "";
+  slot.innerHTML = cmpCache[m.block_id] = `<h2>Stored here vs. on the Tangle</h2>
+    <div class="cmp">
+      <div class="stored"><h3>Stored in the explorer</h3><pre>${esc(JSON.stringify(m.message, null, 2))}</pre></div>
+      <div class="tangle"><h3>On the Tangle (authoritative, fetched ${fmt(t.fetched_at)} UTC)</h3><pre>${esc(t.message !== null ? JSON.stringify(t.message, null, 2) : (t.data_text ?? "(not UTF-8)"))}</pre></div>
+    </div>
+    ${keys.length ? `<p class="diffkeys">Fields that differ: ${keys.map(k => `<b>${esc(k)}</b>`).join(", ")}.</p>` : ""}${tagNote}`;
 }
 async function showTrace(trace, verify=false){
   state.trace = trace; state.selected = null;

@@ -15,7 +15,9 @@ from sqlalchemy.exc import IntegrityError
 
 from . import alerts, mqtt
 from .db import Alert, Message, SessionLocal, init_db, utcnow
-from .verify import RETRYABLE, Hornet, sha256_hex, verify_message
+import httpx
+
+from .verify import RETRYABLE, Hornet, _decode, sha256_hex, verify_message
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("explorer")
@@ -224,6 +226,29 @@ def _get(s, block_id: str) -> Message:
 def detail(block_id: str):
     with SessionLocal() as s:
         return serialize(_get(s, block_id), with_history=True)
+
+
+@app.get("/api/messages/{block_id}/tangle")
+def tangle_copy(block_id: str):
+    """What the Tangle holds for this block right now (live GET block on Hornet, never stored)."""
+    with SessionLocal() as s:
+        _get(s, block_id)                                  # only blocks the explorer knows about
+    try:
+        block = hornet.block(block_id)
+    except httpx.HTTPError as e:
+        raise HTTPException(502, f"Hornet request failed: {e}")
+    if block is None:
+        raise HTTPException(404, f"Hornet has no block {block_id}")
+    payload = block.get("payload") or {}
+    text = _decode(payload.get("data"))
+    try:
+        message = json.loads(text) if text is not None else None
+    except ValueError:
+        message = None
+    return {"block_id": block_id, "payload_type": payload.get("type"), "tag": _decode(payload.get("tag")),
+            "message": message, "data_text": text, "tag_hex": payload.get("tag"), "data_hex": payload.get("data"),
+            "data_sha256": sha256_hex(payload["data"]) if payload.get("data") else None,
+            "fetched_at": _iso(utcnow())}
 
 
 @app.post("/api/messages/{block_id}/verify")

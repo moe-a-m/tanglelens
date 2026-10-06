@@ -76,7 +76,7 @@ Before going on stage: the tangle is up (`curl -s localhost:14265/api/core/v2/in
 | 4 | "Search by what humans know: block id, date, tag, plus source and text." | Step 4 counts. In the UI: a block-id prefix, a date range, tag `trust*` |
 | 4b | "Every record also travels over MQTT: a live feed, and a second path that survives explorer downtime." | In a second terminal: `make mqtt-watch` shows the block records and alerts as they happen. Step 3 prints which path stored each message |
 | 5 | "Related events become a verified timeline. A security alert from Self-Security raised an alert as soon as it arrived." | Step 5: the trace timeline, every event checked against its own block id. In the UI: the alerts banner, then the trace link → timeline |
-| 6 | "Now someone inflates ie-2's trust score in the explorer's database, 0.61 → 0.95." | Step 6: **Content mismatch** ("decoded message in the database differs from the Tangle copy"), the trace flips to *not verified*, a new integrity alert appears in the banner |
+| 6 | "Now someone inflates ie-2's trust score in the explorer's database, 0.61 → 0.95." | Step 6: **Content mismatch** ("decoded message in the database differs from the Tangle copy"), the trace flips to *not verified*, a new integrity alert appears in the banner. Open the message: stored copy and Tangle copy side by side, "Fields that differ: **trust_score**" |
 | 7 | "The Tangle stays the authority. The explorer makes it readable, and it can't be quietly falsified." | Point at the raw hex and SHA-256 in the detail view |
 
 Fallback if the network or tangle fails on stage: the screenshots in `docs/screenshots/` and the saved runs in `reports/demo/`.

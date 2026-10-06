@@ -98,6 +98,7 @@ Interactive docs: http://localhost:8090/docs
 | `POST /api/ingest` | Called by the Messages API. Idempotent on `block_id` (`created: false` on repeats). Rejects anything but a full lowercase 66-char block id (422). |
 | `GET /api/messages` | Search. `block_id`: full id, or a prefix of at least 6 hex chars (`0x` optional). `tag`: exact, or `trust*` for prefix. `from`, `to`: ISO 8601, inclusive, UTC unless an offset is given. Also `type`, `source`, `trace`, `status` (comma-separated), `q` (case-insensitive text in the message or tag), `milestone`. Paging: `limit` (≤ 500), `offset`; `total` is the full count. `sort`: `-submitted_at` (default), `submitted_at`, `milestone_index`, `tag` (prefix `-` for descending). |
 | `GET /api/messages/{block_id}` | Full record with verification history. |
+| `GET /api/messages/{block_id}/tangle` | What the Tangle holds for this block right now (live GET block, decoded), never stored. The UI shows it next to the stored copy on a mismatch. |
 | `POST /api/messages/{block_id}/verify` | Re-verify against Hornet now. |
 | `GET /api/traces` | Traces (related events sharing a `trace` id): event count, first/last time, status counts, `verified` (all confirmed), `problems`. |
 | `GET /api/traces/{trace_id}` | Timeline: the trace's events in chronological order, each with its verification status, milestone and milestone time. |

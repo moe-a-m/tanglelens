@@ -1,0 +1,82 @@
+..................................................................       [100%]
+==================================== PASSES ====================================
+_______ test_explorer_down_upload_still_succeeds_and_forward_is_retried ________
+------------------------------ Captured log call -------------------------------
+WARNING  messages-api:send_data.py:55 explorer unreachable (attempt 1/5): explorer down
+WARNING  messages-api:send_data.py:55 explorer unreachable (attempt 2/5): explorer down
+______________ test_explorer_down_for_good_gives_up_after_retries ______________
+------------------------------ Captured log call -------------------------------
+WARNING  messages-api:send_data.py:55 explorer unreachable (attempt 1/5): explorer down
+WARNING  messages-api:send_data.py:55 explorer unreachable (attempt 2/5): explorer down
+WARNING  messages-api:send_data.py:55 explorer unreachable (attempt 3/5): explorer down
+WARNING  messages-api:send_data.py:55 explorer unreachable (attempt 4/5): explorer down
+WARNING  messages-api:send_data.py:55 explorer unreachable (attempt 5/5): explorer down
+ERROR    messages-api:send_data.py:58 gave up forwarding 0xabababababababababababababababababababababababababababababababab; explorer can backfill via POST /api/ingest
+=========================== short test summary info ============================
+PASSED tests/test_api.py::test_ingest_twice_is_idempotent
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[0x1234]
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA]
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[abababababababababababababababababababababababababababababababab]
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]
+PASSED tests/test_api.py::test_ingest_rejects_malformed_block_id[]
+PASSED tests/test_api.py::test_ingest_keeps_forwarded_exact_hex
+PASSED tests/test_api.py::test_search_by_exact_block_id
+PASSED tests/test_api.py::test_search_by_block_id_prefix
+PASSED tests/test_api.py::test_block_id_filter_rejects_non_hex[0xzzzzzz]
+PASSED tests/test_api.py::test_block_id_filter_rejects_non_hex[0x000000 ]
+PASSED tests/test_api.py::test_block_id_filter_rejects_non_hex[0x00000000000000000000000000000000000000000000000000000000000000000]
+PASSED tests/test_api.py::test_block_id_prefix_shorter_than_6_hex_chars_is_rejected[0x]
+PASSED tests/test_api.py::test_block_id_prefix_shorter_than_6_hex_chars_is_rejected[0x0000]
+PASSED tests/test_api.py::test_block_id_prefix_shorter_than_6_hex_chars_is_rejected[0x00000]
+PASSED tests/test_api.py::test_block_id_prefix_shorter_than_6_hex_chars_is_rejected[00000]
+PASSED tests/test_api.py::test_search_by_tag_exact_and_prefix
+PASSED tests/test_api.py::test_search_by_date_bounds_are_inclusive_and_utc
+PASSED tests/test_api.py::test_other_filters
+PASSED tests/test_api.py::test_combined_filters
+PASSED tests/test_api.py::test_paging_and_sort
+PASSED tests/test_api.py::test_detail_and_unknown
+PASSED tests/test_api.py::test_verify_endpoint_against_real_fixture
+PASSED tests/test_api.py::test_tags_and_stats
+PASSED tests/test_api.py::test_health_reports_unreachable_hornet
+PASSED tests/test_api.py::test_health_uses_real_info_fields
+PASSED tests/test_api.py::test_trace_id_stored_and_searchable
+PASSED tests/test_api.py::test_trace_id_longer_than_128_is_rejected
+PASSED tests/test_api.py::test_startup_adds_missing_trace_column
+PASSED tests/test_messages_api.py::test_upload_keeps_upstream_200_and_shape
+PASSED tests/test_messages_api.py::test_hornet_body_matches_upstream_encoding
+PASSED tests/test_messages_api.py::test_forward_carries_exact_bytes_sent_to_hornet
+PASSED tests/test_messages_api.py::test_explorer_down_upload_still_succeeds_and_forward_is_retried
+PASSED tests/test_messages_api.py::test_explorer_down_for_good_gives_up_after_retries
+PASSED tests/test_messages_api.py::test_hornet_rejection_is_not_forwarded
+PASSED tests/test_messages_api.py::test_hornet_unreachable
+PASSED tests/test_messages_api.py::test_missing_fields
+PASSED tests/test_messages_api.py::test_tag_over_64_bytes_goes_to_hornet_like_upstream
+PASSED tests/test_messages_api.py::test_trace_is_forwarded_not_written_on_chain
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[]
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[42]
+PASSED tests/test_messages_api.py::test_invalid_trace_is_rejected_before_hornet[bad3]
+PASSED tests/test_verify.py::test_identical_block_matches
+PASSED tests/test_verify.py::test_tag_changed_in_db
+PASSED tests/test_verify.py::test_tag_text_changed_in_db_only
+PASSED tests/test_verify.py::test_data_hex_changed_in_db
+PASSED tests/test_verify.py::test_decoded_json_changed_in_db_only
+PASSED tests/test_verify.py::test_sha256_changed_in_db_only
+PASSED tests/test_verify.py::test_payload_type_not_tagged_data
+PASSED tests/test_verify.py::test_non_utf8_chain_data_is_a_mismatch_not_a_crash
+PASSED tests/test_verify.py::test_confirmed_with_milestone_time
+PASSED tests/test_verify.py::test_pending_uses_real_pre_reference_metadata
+PASSED tests/test_verify.py::test_not_solid
+PASSED tests/test_verify.py::test_conflicting
+PASSED tests/test_verify.py::test_metadata_404_is_not_found
+PASSED tests/test_verify.py::test_block_404_after_metadata_is_not_found
+PASSED tests/test_verify.py::test_content_mismatch_takes_precedence[meta0]
+PASSED tests/test_verify.py::test_content_mismatch_takes_precedence[meta1]
+PASSED tests/test_verify.py::test_content_mismatch_takes_precedence[meta2]
+PASSED tests/test_verify.py::test_content_mismatch_takes_precedence[meta3]
+PASSED tests/test_verify.py::test_hornet_failure_is_error_and_keeps_last_known_state[500]
+PASSED tests/test_verify.py::test_hornet_failure_is_error_and_keeps_last_known_state[503]
+PASSED tests/test_verify.py::test_hornet_failure_is_error_and_keeps_last_known_state[fail2]
+PASSED tests/test_verify.py::test_hornet_failure_is_error_and_keeps_last_known_state[fail3]
+PASSED tests/test_verify.py::test_every_check_appends_a_validation_row
+66 passed, 1 deselected in 7.58s

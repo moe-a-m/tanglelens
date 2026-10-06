@@ -1,0 +1,9 @@
+*.db
+.env
+privatedb/
+snapshots/
+reports/hornet/*.bin
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tangle Advanced Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF2F5; --sheet:#FFFFFF; --ink:#1B2A41; --muted:#5B6B7F; --rule:#D3DBE3;
+  --ok:#2E7D5B; --ok-bg:#E3F1EA; --wait:#9A6210; --wait-bg:#FBF0DC; --bad:#B3261E; --bad-bg:#FBE4E2;
+  --focus:#2F5BEA;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+header{padding:20px 28px 12px;display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline}
+h1{font-size:22px;font-weight:600;margin:0;letter-spacing:-.01em}
+#node{color:var(--muted);font-size:13px}
+#node b{color:var(--ink);font-weight:500}
+.filters{display:flex;flex-wrap:wrap;gap:8px;padding:0 28px 14px;align-items:end}
+.filters label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:3px}
+input,select{font:14px var(--sans);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:7px 9px;min-width:0}
+#f-q{width:220px}#f-id{width:170px;font-family:var(--mono);font-size:13px}#f-tag{width:150px}
+button{font:500 14px var(--sans);border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:6px;padding:7px 14px;cursor:pointer}
+button.quiet{background:transparent;color:var(--ink);border-color:var(--rule)}
+.counts{display:flex;gap:6px;padding:0 28px 12px;flex-wrap:wrap}
+.chip{font-size:13px;border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:3px 11px;cursor:pointer;color:var(--ink)}
+.chip[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0;border-top:1px solid var(--rule);min-height:calc(100vh - 170px)}
+#list{border-right:1px solid var(--rule);overflow:auto;max-height:calc(100vh - 170px)}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;font-weight:500;color:var(--muted);text-align:left;padding:8px 12px;position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--rule)}
+td{padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top;font-size:14px}
+tr.row{cursor:pointer;background:var(--sheet)}
+tr.row:hover{background:#F7F9FB}
+tr.row[aria-selected=true]{background:#E8EEF8}
+.id{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.sub{font-size:12.5px;color:var(--muted)}
+.badge{display:inline-block;font-size:12.5px;font-weight:500;border-radius:4px;padding:1px 7px;white-space:nowrap}
+.s-confirmed{color:var(--ok);background:var(--ok-bg)}
+.s-pending,.s-unverified,.s-not_solid{color:var(--wait);background:var(--wait-bg)}
+.s-content_mismatch,.s-not_found,.s-conflicting,.s-error{color:var(--bad);background:var(--bad-bg)}
+#pager{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;color:var(--muted);font-size:13px}
+#detail{padding:22px 28px;overflow:auto;max-height:calc(100vh - 170px)}
+.empty{color:var(--muted);max-width:42ch}
+.verdict{border-left:5px solid var(--muted);padding:4px 0 4px 16px;margin:0 0 20px}
+.verdict.ok{border-color:var(--ok)}.verdict.wait{border-color:var(--wait)}.verdict.bad{border-color:var(--bad)}
+.verdict p{margin:0;font-size:19px;line-height:1.35;font-weight:500;max-width:36ch}
+.verdict small{display:block;margin-top:6px;color:var(--muted);font-size:13.5px}
+.checks{list-style:none;padding:0;margin:0 0 22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px 18px}
+.checks li{font-size:14px;display:flex;gap:8px;align-items:baseline}
+.mark{font-weight:600;width:1.1em;flex:none;text-align:center}
+.mark.y{color:var(--ok)}.mark.n{color:var(--bad)}.mark.u{color:var(--wait)}
+h2{font-size:14px;font-weight:600;margin:22px 0 8px}
+dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 16px;margin:0;font-size:14px}
+dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
+pre{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:12px;font:13px/1.5 var(--mono);overflow:auto;margin:0}
+.hist td{font-size:13px;padding:6px 8px}
+.actions{display:flex;gap:8px;margin-top:4px}
+@media (max-width:860px){main{grid-template-columns:1fr}#list,#detail{max-height:none}#list{border-right:0;border-bottom:1px solid var(--rule)}}
+@media (max-width:600px){th:nth-child(4),td:nth-child(4){display:none}.filters input{width:100%!important}.filters label{flex:1 1 140px}}
+@media (prefers-reduced-motion:no-preference){tr.row{transition:background .12s}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tangle Advanced Explorer</h1>
+  <span id="node">Checking Hornet node…</span>
+</header>
+
+<form class="filters" id="filters">
+  <label>Search message text<input id="f-q" type="search" placeholder="e.g. migrate, IE-3"></label>
+  <label>Block ID or prefix<input id="f-id" placeholder="0x…"></label>
+  <label>Tag<input id="f-tag" list="taglist" placeholder="trust.score or trust*"></label>
+  <datalist id="taglist"></datalist>
+  <label>From<input id="f-from" type="datetime-local"></label>
+  <label>To<input id="f-to" type="datetime-local"></label>
+  <label>Source<input id="f-src" placeholder="aeriOS/IE-1" style="width:130px"></label>
+  <button type="submit">Search</button>
+  <button type="button" class="quiet" id="reset">Clear</button>
+</form>
+<div class="counts" id="counts" role="group" aria-label="Filter by verification status"></div>
+
+<main>
+  <section id="list" aria-label="Messages">
+    <table>
+      <thead><tr><th>Status</th><th>Tag and source</th><th>Submitted (UTC)</th><th>Block</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="pager"></div>
+  </section>
+  <section id="detail" aria-live="polite">
+    <p class="empty">Select a message to see what was stored, what the Tangle holds, and whether they match.</p>
+  </section>
+</main>
+
+<script>
+const LABEL = {confirmed:"Confirmed", pending:"Awaiting milestone", unverified:"Not checked yet",
+  not_solid:"Not solid yet", content_mismatch:"Content mismatch", not_found:"Not on Tangle",
+  conflicting:"Conflicting", error:"Node unreachable"};
+const TONE = s => s==="confirmed" ? "ok" : ["pending","unverified","not_solid"].includes(s) ? "wait" : "bad";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const short = id => id ? id.slice(0,10)+"…"+id.slice(-6) : "";
+const fmt = iso => iso ? iso.replace("T"," ").replace("Z","") : "—";
+const badge = s => `<span class="badge s-${s}">${LABEL[s]||s}</span>`;
+let state = {offset:0, limit:50, status:null, selected:null};
+
+function params(){
+  const p = new URLSearchParams({limit:state.limit, offset:state.offset});
+  const v = id => document.getElementById(id).value.trim();
+  if (v("f-q")) p.set("q", v("f-q"));
+  if (v("f-id")) p.set("block_id", v("f-id"));
+  if (v("f-tag")) p.set("tag", v("f-tag"));
+  if (v("f-src")) p.set("source", v("f-src"));
+  if (v("f-from")) p.set("from", v("f-from")+":00Z");
+  if (v("f-to")) p.set("to", v("f-to")+":59Z");
+  if (state.status) p.set("status", state.status);
+  return p;
+}
+
+async function loadList(){
+  const r = await fetch("/api/messages?"+params()); const d = await r.json();
+  const rows = document.getElementById("rows");
+  rows.innerHTML = d.items.length ? d.items.map(m => `
+    <tr class="row" tabindex="0" data-id="${m.block_id}" aria-selected="${m.block_id===state.selected}">
+      <td>${badge(m.verification.status)}</td>
+      <td>${esc(m.tag)}<div class="sub">${esc(m.source || m.message_type || "")}</div></td>
+      <td class="sub">${fmt(m.submitted_at)}</td>
+      <td class="id" title="${m.block_id}">${short(m.block_id)}</td>
+    </tr>`).join("")
+    : `<tr><td colspan="4" class="sub" style="padding:20px 12px">No messages match these filters. Clear a filter or send a message through the Messages API.</td></tr>`;
+  const end = Math.min(d.offset + d.items.length, d.total);
+  document.getElementById("pager").innerHTML = `<span>${d.total ? d.offset+1 : 0}–${end} of ${d.total}</span>
+    <span><button class="quiet" ${d.offset===0?"disabled":""} onclick="page(-1)">Previous</button>
+    <button class="quiet" ${end>=d.total?"disabled":""} onclick="page(1)">Next</button></span>`;
+}
+function page(dir){ state.offset = Math.max(0, state.offset + dir*state.limit); loadList(); }
+
+async function loadStats(){
+  const s = await (await fetch("/api/stats")).json();
+  const order = ["confirmed","pending","unverified","not_solid","content_mismatch","not_found","conflicting","error"];
+  const chips = [`<button type="button" class="chip" aria-pressed="${!state.status}" data-s="">All ${s.total}</button>`]
+    .concat(order.filter(k => s.by_status[k]).map(k =>
+      `<button type="button" class="chip" aria-pressed="${state.status===k}" data-s="${k}">${LABEL[k]} ${s.by_status[k]}</button>`));
+  document.getElementById("counts").innerHTML = chips.join("");
+  const tags = await (await fetch("/api/tags")).json();
+  document.getElementById("taglist").innerHTML = tags.map(t => `<option value="${esc(t.tag)}">`).join("");
+}
+
+async function loadHealth(){
+  const h = await (await fetch("/api/health")).json(); const n = h.hornet;
+  document.getElementById("node").innerHTML = n.reachable
+    ? `Hornet <b>${esc(n.name||"node")}</b> reachable, latest milestone <b>${n.latest_milestone ?? "—"}</b>`
+    : `<span style="color:var(--bad)">Hornet node unreachable. Verification is paused until it is back.</span>`;
+}
+
+function verdict(m){
+  const v = m.verification, last = (m.history||[])[0] || {};
+  const t = {
+    confirmed: [`The Tangle holds exactly this message.`, `Referenced by milestone ${v.milestone_index}${v.milestone_time ? " at "+fmt(v.milestone_time)+" UTC" : ""}.`],
+    pending: [`The block is on the Tangle and solid, but no milestone has referenced it yet.`, `Rechecked automatically every few seconds.`],
+    unverified: [`This message has not been checked against the Tangle yet.`, `The first check runs within seconds of arrival.`],
+    not_solid: [`The node has the block but not its full history yet.`, `Rechecked automatically until it becomes solid.`],
+    content_mismatch: [`What is stored here does not match the Tangle.`, last.detail || ""],
+    not_found: [`The Hornet node has no block with this ID.`, `It may have been rejected, or the ID was recorded incorrectly.`],
+    conflicting: [`The Tangle marks this block as conflicting.`, last.detail || ""],
+    error: [`The Hornet node could not be reached for the last check.`, last.detail || ""],
+  }[v.status] || [v.status, ""];
+  return `<div class="verdict ${TONE(v.status)}"><p>${esc(t[0])}</p><small>${esc(t[1])}</small></div>`;
+}
+
+const mark = (val, pendingIsWait=false) => val===true ? `<span class="mark y" aria-label="yes">✓</span>`
+  : val===false ? `<span class="mark n" aria-label="no">✗</span>` : `<span class="mark u" aria-label="unknown">…</span>`;
+
+async function showDetail(id){
+  state.selected = id;
+  document.querySelectorAll("tr.row").forEach(r => r.setAttribute("aria-selected", r.dataset.id===id));
+  const r = await fetch("/api/messages/"+encodeURIComponent(id));
+  if (!r.ok){ document.getElementById("detail").innerHTML = `<p class="empty">That message is no longer stored.</p>`; return; }
+  const m = await r.json(), v = m.verification, last = m.history[0] || {};
+  const exists = v.status==="not_found" ? false : v.status==="unverified"||v.status==="error" ? null : true;
+  document.getElementById("detail").innerHTML = `
+    ${verdict(m)}
+    <ul class="checks">
+      <li>${mark(exists)} Block exists on node</li>
+      <li>${mark(v.is_solid)} Block is solid</li>
+      <li>${mark(v.milestone_index ? true : (exists ? null : false))} Referenced by milestone</li>
+      <li>${mark(last.tag_match)} Tag matches</li>
+      <li>${mark(last.data_match)} Message content matches</li>
+    </ul>
+    <div class="actions"><button onclick="reverify('${m.block_id}')">Verify again</button>
+      <button class="quiet" onclick="navigator.clipboard.writeText('${m.block_id}')">Copy block ID</button></div>
+    <h2>Message</h2>
+    <pre>${esc(JSON.stringify(m.message, null, 2))}</pre>
+    <h2>Details</h2>
+    <dl>
+      <dt>Block ID</dt><dd class="id">${m.block_id}</dd>
+      <dt>Tag</dt><dd>${esc(m.tag)}</dd>
+      <dt>Type</dt><dd>${esc(m.message_type || "—")}</dd>
+      <dt>Source</dt><dd>${esc(m.source || "—")}</dd>
+      <dt>Submitted via</dt><dd>${esc(m.node || "—")}</dd>
+      <dt>Submitted</dt><dd>${fmt(m.submitted_at)} UTC</dd>
+      <dt>Milestone</dt><dd>${v.milestone_index ?? "—"}${v.milestone_time ? " ("+fmt(v.milestone_time)+" UTC)" : ""}</dd>
+      <dt>Ledger state</dt><dd>${esc(v.ledger_inclusion_state || "—")}</dd>
+      <dt>SHA-256 of data</dt><dd class="id">${m.data_sha256}</dd>
+      <dt>Checks run</dt><dd>${v.check_count}, last ${fmt(v.last_checked_at)} UTC</dd>
+    </dl>
+    <h2>Verification history</h2>
+    <table class="hist"><thead><tr><th>Checked (UTC)</th><th>Result</th><th>Milestone</th><th>Note</th></tr></thead><tbody>
+      ${m.history.slice(0,20).map(h => `<tr><td class="sub">${fmt(h.checked_at)}</td><td>${badge(h.status)}</td>
+        <td>${h.milestone_index ?? "—"}</td><td class="sub">${esc(h.detail || "")}</td></tr>`).join("")}
+    </tbody></table>
+    <h2>Raw bytes sent to Hornet</h2>
+    <dl><dt>tag (hex)</dt><dd class="id">${m.raw.tag_hex}</dd><dt>data (hex)</dt><dd class="id">${m.raw.data_hex}</dd></dl>`;
+}
+async function reverify(id){ await fetch(`/api/messages/${encodeURIComponent(id)}/verify`, {method:"POST"}); refresh(); showDetail(id); }
+
+function refresh(){ loadList(); loadStats(); }
+document.getElementById("filters").addEventListener("submit", e => { e.preventDefault(); state.offset=0; refresh(); });
+document.getElementById("reset").addEventListener("click", () => { document.getElementById("filters").reset(); state.status=null; state.offset=0; refresh(); });
+document.getElementById("counts").addEventListener("click", e => { const b=e.target.closest(".chip"); if(!b) return; state.status=b.dataset.s||null; state.offset=0; refresh(); });
+document.getElementById("rows").addEventListener("click", e => { const r=e.target.closest("tr.row"); if(r) showDetail(r.dataset.id); });
+document.getElementById("rows").addEventListener("keydown", e => { const r=e.target.closest("tr.row"); if(r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); showDetail(r.dataset.id);} });
+
+refresh(); loadHealth();
+setInterval(() => { refresh(); loadHealth(); if (state.selected) showDetail(state.selected); }, 5000);
+</script>
+</body>
+</html>

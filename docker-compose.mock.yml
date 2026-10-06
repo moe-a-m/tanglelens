@@ -1,0 +1,14 @@
+# Development only: a fake Hornet named iota-hornet on network iota-net,
+# so the explorer stack runs before (or without) the real private tangle.
+services:
+  iota-hornet:
+    build: ./mock-hornet
+    container_name: iota-hornet
+    environment:
+      MILESTONE_DELAY: "5"
+    ports:
+      - "14265:14265"
+
+networks:
+  default:
+    name: iota-net

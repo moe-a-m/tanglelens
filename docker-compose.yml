@@ -1,0 +1,49 @@
+# Advanced Explorer stack. Joins the network created by the aeriOS tangle
+# (iota-tangle/docker/main/hornet-main.yaml) or by docker-compose.mock.yml.
+services:
+  explorer-db:
+    image: postgres:16-alpine
+    container_name: explorer-db
+    environment:
+      POSTGRES_USER: explorer
+      POSTGRES_PASSWORD: explorer
+      POSTGRES_DB: explorer
+    volumes:
+      - explorer-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U explorer"]
+      interval: 3s
+      retries: 20
+
+  advanced-explorer:
+    build: ./explorer
+    container_name: advanced-explorer
+    depends_on:
+      explorer-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://explorer:explorer@explorer-db:5432/explorer
+      HORNET_URL: ${HORNET_URL:-http://iota-hornet:14265}
+      VERIFY_INTERVAL: "3"
+      AUDIT_INTERVAL: "300"
+    ports:
+      - "8090:8090"
+    restart: unless-stopped
+
+  iota-messages-api:
+    build: ./messages-api
+    container_name: iota-messages-api
+    environment:
+      EXPLORER_URL: http://advanced-explorer:8090
+      HORNET_NODE: iota-hornet
+    ports:
+      - "5555:5555"
+    restart: unless-stopped
+
+volumes:
+  explorer-data:
+
+networks:
+  default:
+    name: ${HORNET_NETWORK:-iota-net}
+    external: true

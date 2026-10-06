@@ -61,6 +61,20 @@ dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
 pre{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:12px;font:13px/1.5 var(--mono);overflow:auto;margin:0}
 .hist td{font-size:13px;padding:6px 8px}
 .actions{display:flex;gap:8px;margin-top:4px}
+#alerts{margin:0 28px 12px;border:1px solid var(--bad);background:var(--bad-bg);border-radius:6px;padding:8px 12px;font-size:14px}
+#alerts[hidden]{display:none}
+#alerts summary{cursor:pointer;font-weight:500;color:var(--bad)}
+#alerts ul{list-style:none;margin:8px 0 2px;padding:0;display:grid;gap:6px}
+#alerts li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;background:var(--sheet);border-radius:4px;padding:6px 8px}
+#alerts li .grow{flex:1 1 220px;min-width:0;overflow-wrap:anywhere}
+button.small{font-size:12.5px;padding:2px 9px}
+a.link{color:var(--focus);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.tl{list-style:none;margin:0;padding:0 0 0 18px;border-left:2px solid var(--rule)}
+.tl li{position:relative;margin:0 0 12px;padding:8px 10px;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;cursor:pointer}
+.tl li:hover{background:#F7F9FB}
+.tl li::before{content:"";position:absolute;left:-25px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--muted);border:2px solid var(--paper)}
+.tl li.ok::before{background:var(--ok)}.tl li.wait::before{background:var(--wait)}.tl li.bad::before{background:var(--bad)}
+.tl .when{font-size:12.5px;color:var(--muted)}
 @media (max-width:860px){main{grid-template-columns:1fr}#list,#detail{max-height:none}#list{border-right:0;border-bottom:1px solid var(--rule)}}
 @media (max-width:600px){th:nth-child(4),td:nth-child(4){display:none}.filters input{width:100%!important}.filters label{flex:1 1 140px}}
 @media (prefers-reduced-motion:no-preference){tr.row{transition:background .12s}}
@@ -80,10 +94,12 @@ pre{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;paddi
   <label>From (UTC)<input id="f-from" type="datetime-local" title="Interpreted as UTC, like every time shown on this page"></label>
   <label>To (UTC)<input id="f-to" type="datetime-local" title="Interpreted as UTC, inclusive to the end of the minute"></label>
   <label>Source<input id="f-src" placeholder="aeriOS/IE-1" style="width:130px"></label>
+  <label>Trace<input id="f-trace" placeholder="ie-1-flow" style="width:120px"></label>
   <button type="submit">Search</button>
   <button type="button" class="quiet" id="reset">Clear</button>
 </form>
 <div class="counts" id="counts" role="group" aria-label="Filter by verification status"></div>
+<details id="alerts" hidden aria-live="polite"><summary id="alerts-sum"></summary><ul id="alerts-list"></ul></details>
 
 <main>
   <section id="list" aria-label="Messages">
@@ -107,7 +123,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const short = id => id ? id.slice(0,10)+"…"+id.slice(-6) : "";
 const fmt = iso => iso ? iso.replace("T"," ").replace("Z","") : "—";
 const badge = s => `<span class="badge s-${s}">${LABEL[s]||s}</span>`;
-let state = {offset:0, limit:50, status:null, selected:null};
+let state = {offset:0, limit:50, status:null, selected:null, trace:null};
 
 function params(){
   const p = new URLSearchParams({limit:state.limit, offset:state.offset});
@@ -116,6 +132,7 @@ function params(){
   if (v("f-id")) p.set("block_id", v("f-id"));
   if (v("f-tag")) p.set("tag", v("f-tag"));
   if (v("f-src")) p.set("source", v("f-src"));
+  if (v("f-trace")) p.set("trace", v("f-trace"));
   if (v("f-from")) p.set("from", v("f-from")+":00Z");
   if (v("f-to")) p.set("to", v("f-to")+":59Z");
   if (state.status) p.set("status", state.status);
@@ -128,7 +145,7 @@ async function loadList(){
   rows.innerHTML = d.items.length ? d.items.map(m => `
     <tr class="row" tabindex="0" data-id="${m.block_id}" aria-selected="${m.block_id===state.selected}">
       <td>${badge(m.verification.status)}</td>
-      <td>${esc(m.tag)}<div class="sub">${esc(m.source || m.message_type || "")}</div></td>
+      <td>${esc(m.tag)}<div class="sub">${[m.source || m.message_type, m.trace_id && "trace "+m.trace_id].filter(Boolean).map(esc).join(" · ")}</div></td>
       <td class="sub">${fmt(m.submitted_at)}</td>
       <td class="id" title="${m.block_id}">${short(m.block_id)}</td>
     </tr>`).join("")
@@ -177,7 +194,7 @@ const mark = (val, pendingIsWait=false) => val===true ? `<span class="mark y" ar
   : val===false ? `<span class="mark n" aria-label="no">✗</span>` : `<span class="mark u" aria-label="unknown">…</span>`;
 
 async function showDetail(id){
-  state.selected = id;
+  state.selected = id; state.trace = null;
   document.querySelectorAll("tr.row").forEach(r => r.setAttribute("aria-selected", r.dataset.id===id));
   const r = await fetch("/api/messages/"+encodeURIComponent(id));
   if (!r.ok){ document.getElementById("detail").innerHTML = `<p class="empty">That message is no longer stored.</p>`; return; }
@@ -202,6 +219,7 @@ async function showDetail(id){
       <dt>Tag</dt><dd>${esc(m.tag)}</dd>
       <dt>Type</dt><dd>${esc(m.message_type || "—")}</dd>
       <dt>Source</dt><dd>${esc(m.source || "—")}</dd>
+      <dt>Trace</dt><dd>${m.trace_id ? `<a href="#" class="link" data-trace="${esc(m.trace_id)}">${esc(m.trace_id)}</a> (view timeline)` : "—"}</dd>
       <dt>Submitted via</dt><dd>${esc(m.node || "—")}</dd>
       <dt>Submitted</dt><dd>${fmt(m.submitted_at)} UTC</dd>
       <dt>Milestone</dt><dd>${v.milestone_index ?? "—"}${v.milestone_time ? " ("+fmt(v.milestone_time)+" UTC)" : ""}</dd>
@@ -217,6 +235,56 @@ async function showDetail(id){
     <h2>Raw bytes sent to Hornet</h2>
     <dl><dt>tag (hex)</dt><dd class="id">${m.raw.tag_hex}</dd><dt>data (hex)</dt><dd class="id">${m.raw.data_hex}</dd></dl>`;
 }
+async function showTrace(trace, verify=false){
+  state.trace = trace; state.selected = null;
+  document.querySelectorAll("tr.row").forEach(r => r.setAttribute("aria-selected", false));
+  const url = "/api/traces/"+encodeURIComponent(trace)+(verify ? "/verify" : "");
+  const r = await fetch(url, {method: verify ? "POST" : "GET"});
+  if (!r.ok){ document.getElementById("detail").innerHTML = `<p class="empty">No messages stored for trace ${esc(trace)}.</p>`; return; }
+  const t = await r.json();
+  const tone = t.problems ? "bad" : t.verified ? "ok" : "wait";
+  const head = t.problems ? `${t.problems} of ${t.events} events in this trace do not match the Tangle.`
+    : t.verified ? `All ${t.events} events in this trace are on the Tangle, confirmed and unchanged.`
+    : `This trace has ${t.events} events; some are still waiting for a milestone or a first check.`;
+  document.getElementById("detail").innerHTML = `
+    <div class="verdict ${tone}"><p>${esc(head)}</p><small>Trace ${esc(t.trace_id)}, ${fmt(t.first_at)} to ${fmt(t.last_at)} UTC</small></div>
+    <div class="actions"><button onclick="showTrace('${esc(t.trace_id)}', true)">Verify all events now</button>
+      <button class="quiet" onclick="filterTrace('${esc(t.trace_id)}')">Show in list</button></div>
+    <h2>Timeline (submit time, oldest first)</h2>
+    <ol class="tl">${t.timeline.map(e => `
+      <li class="${TONE(e.verification.status)}" data-id="${e.block_id}" tabindex="0">
+        <div class="when">#${e.seq} · ${fmt(e.submitted_at)} UTC${e.verification.milestone_index ? " · milestone "+e.verification.milestone_index : ""}</div>
+        <div>${badge(e.verification.status)} <b>${esc(e.tag)}</b> <span class="sub">${esc(e.source || "")}</span></div>
+        <div class="id">${short(e.block_id)}</div></li>`).join("")}</ol>`;
+}
+function filterTrace(trace){ document.getElementById("f-trace").value = trace; state.offset = 0; refresh(); }
+
+let alertsSeen = 0;
+async function loadAlerts(){
+  const d = await (await fetch("/api/alerts?unacknowledged=true&limit=20")).json();
+  const box = document.getElementById("alerts");
+  box.hidden = d.open === 0;
+  if (!d.open) return;
+  document.getElementById("alerts-sum").textContent = `${d.open} open alert${d.open>1?"s":""}: critical events or integrity failures`;
+  document.getElementById("alerts-list").innerHTML = d.items.map(a => `
+    <li><span class="sub">${fmt(a.created_at)}</span>${a.kind==="integrity" ? badge(a.status) : `<span class="badge s-error">Critical event</span>`}
+      <span class="grow"><b>${a.kind==="integrity" ? "Integrity failure" : "Critical tag"}</b>: ${esc(a.tag)}
+        ${a.trace_id ? ` · trace <a href="#" class="link" data-trace="${esc(a.trace_id)}">${esc(a.trace_id)}</a>` : ""}
+        · <a href="#" class="link" data-id="${a.block_id}">${short(a.block_id)}</a><br><span class="sub">${esc(a.detail || "")}</span></span>
+      <button class="quiet small" onclick="ackAlert(${a.id})">Acknowledge</button></li>`).join("");
+  if (d.items.length && d.items[0].id > alertsSeen && alertsSeen) box.open = true;   // new alert arrived
+  alertsSeen = Math.max(alertsSeen, d.items.length ? d.items[0].id : 0);
+}
+async function ackAlert(id){ await fetch(`/api/alerts/${id}/ack`, {method:"POST"}); loadAlerts(); }
+
+document.addEventListener("click", e => {
+  const tr = e.target.closest("[data-trace]"); if (tr){ e.preventDefault(); showTrace(tr.dataset.trace); return; }
+  const li = e.target.closest(".tl li, #alerts a[data-id]"); if (li){ e.preventDefault(); showDetail(li.dataset.id); }
+});
+document.addEventListener("keydown", e => {
+  const li = e.target.closest(".tl li"); if (li && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); showDetail(li.dataset.id); }
+});
+
 async function reverify(id){ await fetch(`/api/messages/${encodeURIComponent(id)}/verify`, {method:"POST"}); refresh(); showDetail(id); }
 
 function refresh(){ loadList(); loadStats(); }
@@ -226,8 +294,9 @@ document.getElementById("counts").addEventListener("click", e => { const b=e.tar
 document.getElementById("rows").addEventListener("click", e => { const r=e.target.closest("tr.row"); if(r) showDetail(r.dataset.id); });
 document.getElementById("rows").addEventListener("keydown", e => { const r=e.target.closest("tr.row"); if(r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); showDetail(r.dataset.id);} });
 
-refresh(); loadHealth();
-setInterval(() => { refresh(); loadHealth(); if (state.selected) showDetail(state.selected); }, 5000);
+refresh(); loadHealth(); loadAlerts();
+setInterval(() => { refresh(); loadHealth(); loadAlerts();
+  if (state.selected) showDetail(state.selected); else if (state.trace) showTrace(state.trace); }, 5000);
 </script>
 </body>
 </html>

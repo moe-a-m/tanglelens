@@ -196,13 +196,12 @@ Already in the repo, tested only against `mock-hornet` with SQLite:
 
 Known gaps — work these before any new feature:
 1. ~~Never run against real Hornet.~~ P0 done 2026-10-06: §3 verified/corrected (`reports/hornet/README.md`).
-2. **Never run on PostgreSQL** (JSON column, `ILIKE`, `NULLS FIRST` ordering, psycopg URL).
-3. **No pytest suite in the repo.** The end-to-end check that was run lives outside it;
-   rebuild it as tests (§10).
-4. **No Makefile.**
-5. Upload response status changed from the upstream's 200 to Hornet's status code (201).
-   Confirm this does not break existing aeriOS callers; if unsure, ask the user.
-6. UI date filters treat `datetime-local` input as UTC; label it or convert explicitly.
+2. ~~Never run on PostgreSQL.~~ Demo and full suite pass on PostgreSQL 16.15 (`reports/tests/`).
+3. ~~No pytest suite.~~ `tests/` (58 + live smoke test), run with `make test` / `make smoke-real`.
+4. ~~No Makefile.~~ Done.
+5. ~~Upload status 201.~~ Restored upstream 200 (user's decision, DESIGN D4). Still open: the tag
+   pre-check returns 400 where upstream returns 200 (OPEN_QUESTIONS #9).
+6. ~~UI date filters.~~ Labelled as UTC.
 7. Forwarding failures after all retries are only logged (no durable outbox, no backfill).
 8. Explorer has no authentication. Acceptable for the demo; state it in the README.
 

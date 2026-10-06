@@ -1,0 +1,27 @@
+
+[1m1. Publishing messages through the extended Messages API[0m
+  0x2631a19f4f78c6983e4ef923e8e541c5e3e0bfead61038a8fa5924186a9e94f6
+  0xda10891d86651ba465a094c438628ce92094283e3734198c29e7376a53287c7d
+  0x995d43705d14862cba4bd35e0da9455442da760e287d286429a3df19dedefcf0
+  0x9399b6517e732012df8aa58efdbf2b634089433adb9fee4c722346881a29801c
+
+[1m2. Verify the last block on demand, right after insertion[0m
+  (blocks are solid within ~20 ms; a milestone references them after 0.3-5 s, see reports/hornet/README.md H11,
+   so this shows 'pending' if no milestone has arrived yet, otherwise already 'confirmed')
+  status: pending | solid: True | milestone: None | content match: True
+{"total":12,"by_status":{"unverified":3,"pending":1,"confirmed":6,"content_mismatch":2},"latest_milestone":111}
+
+[1m3. After the next milestones (expect confirmed)[0m
+{"total":12,"by_status":{"confirmed":10,"content_mismatch":2},"latest_milestone":115}
+
+[1m4. Search: tag prefix, source, free text, date range[0m
+  tag=trust*      -> 9
+  source=IE-2     -> 3
+  q=migrate       -> 3
+  last hour       -> 12
+
+[1m5. Tamper with the explorer's copy in Postgres, then verify against the Tangle[0m
+  status: content_mismatch
+  why:    decoded message in the database differs from the Tangle copy
+
+[1mOpen http://localhost:8091 to browse, filter and inspect every message.[0m

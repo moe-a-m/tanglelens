@@ -19,11 +19,17 @@ BLOCK=$(curl -s "$API/upload?node=$NODE" -H 'Content-Type: application/json' -d 
   | python3 -c 'import sys,json;print(json.load(sys.stdin)["blockId"])')
 echo "  $BLOCK"
 
-say "2. Right after insertion (expect pending: solid but not yet milestone-referenced)"
-sleep 2; curl -s "$EXP/api/stats"; echo
+say "2. Verify the last block on demand, right after insertion"
+echo "  (blocks are solid within ~20 ms; a milestone references them after 0.3-5 s, see reports/hornet/README.md H11,"
+echo "   so this shows 'pending' if no milestone has arrived yet, otherwise already 'confirmed')"
+sleep 0.5
+curl -s -X POST "$EXP/api/messages/$BLOCK/verify" | python3 -c '
+import sys,json; v=json.load(sys.stdin)["verification"]
+print("  status:", v["status"], "| solid:", v["is_solid"], "| milestone:", v["milestone_index"], "| content match:", v["content_match"])'
+curl -s "$EXP/api/stats"; echo
 
 say "3. After the next milestones (expect confirmed)"
-sleep 12; curl -s "$EXP/api/stats"; echo
+sleep 8; curl -s "$EXP/api/stats"; echo
 
 say "4. Search: tag prefix, source, free text, date range"
 curl -s "$EXP/api/messages?tag=trust*" | python3 -c 'import sys,json;d=json.load(sys.stdin);print("  tag=trust*      ->", d["total"])'

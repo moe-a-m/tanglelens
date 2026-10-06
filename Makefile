@@ -11,9 +11,9 @@ STAMP        := $(shell date -u +%Y%m%d)_$(shell git rev-parse --short HEAD 2>/d
 up:            ## explorer + Postgres + Messages API on the real tangle's network (iota-net)
 	$(COMPOSE) up -d --build
 
-up-mock:       ## development only: fake Hornet (creates iota-net), then the stack
+up-mock:       ## development only: fake Hornet on its own network (iota-mock-net), then the stack
 	$(COMPOSE) -f docker-compose.mock.yml up -d --build
-	$(COMPOSE) up -d --build
+	HORNET_NETWORK=iota-mock-net $(COMPOSE) up -d --build
 
 down:
 	$(COMPOSE) down
@@ -33,7 +33,7 @@ smoke-real:    ## live test against the running stack + REAL Hornet; records in 
 	$(RUN) tests pytest -q -rA -m live | tee reports/tests/$(STAMP)_smoke_real.txt
 
 e2e-mock:      ## same live test, but against the mock (make up-mock first)
-	$(RUN) -e SMOKE_TIMEOUT=30 tests pytest -q -rA -m live | tee reports/tests/$(STAMP)_e2e_mock.txt
+	HORNET_NETWORK=iota-mock-net $(RUN) -e SMOKE_TIMEOUT=30 tests pytest -q -rA -m live | tee reports/tests/$(STAMP)_e2e_mock.txt
 
 demo:
 	./scripts/demo.sh

@@ -1,0 +1,14 @@
+# Clean-clone check, 2026-10-06T15:55:29Z, machine per reports/env.txt
+git clone of commit 149b4d0 into an empty directory; real tangle already running (bootstrapped earlier with sudo).
+Fresh DB (new compose volume for the clone's project name).
+
+EXPLORER_PORT=8091 make up      -> stack up, /api/stats total 0
+make test                       -> 58 passed, 1 deselected in 8.20s (SQLite); 58 passed, 1 deselected in 5.76s (PostgreSQL)
+make smoke-real                 -> 1 passed, 58 deselected in 4.50s
+EXPLORER_PORT=8091 make demo    -> 7 confirmed; tag=trust* 3, source 1, q 1, last hour 7; tamper -> content_mismatch
+
+Mock path (dev only):
+1st try FAILED: mock reused container name iota-hornet and network iota-net, which the (stopped) tangle owns -> name conflict.
+Fix: mock gets its own name (mock-hornet), network (iota-mock-net, alias iota-hornet) and compose project (explorer-mock).
+After fix: make up-mock -> no warnings; make e2e-mock -> 1 passed, 58 deselected in 9.94s; make down -> clean.
+Tangle restarted with 'docker compose -f hornet-main.yaml start': milestones resumed (368 -> 369).

@@ -64,7 +64,7 @@ To stop: `make down`. To wipe the tangle: `cd iota-tangle/docker/main && sudo ./
 | `make demo` | Publish aeriOS-style messages, show pending → confirmed, search, tamper with the DB and catch it |
 | `make test` | Full test suite in a container, on SQLite and on the compose PostgreSQL; summary saved in `reports/tests/` |
 | `make smoke-real` | Live test: 3 messages through the Messages API to the real node must reach `confirmed` and be findable by block id, date and tag |
-| `make up-mock` / `make e2e-mock` | Development only, without the tangle: fake Hornet + stack, and the same live test against it |
+| `make up-mock` / `make e2e-mock` | Development only: fake Hornet on its own network (`iota-mock-net`) + stack, and the same live test against it. The tangle may keep running; only one explorer stack at a time (`make down` first) |
 | `make logs`, `make reset-db` | Follow logs; wipe the explorer database (the Tangle is untouched) |
 
 ## Publishing a message

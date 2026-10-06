@@ -27,7 +27,7 @@ services:
       VERIFY_INTERVAL: "3"
       AUDIT_INTERVAL: "300"
     ports:
-      - "8090:8090"
+      - "${EXPLORER_PORT:-8090}:8090"
     restart: unless-stopped
 
   iota-messages-api:

@@ -2,7 +2,7 @@
 # Demo for the pitch: publish aeriOS-style messages, search them, then prove tamper detection.
 set -euo pipefail
 API=${API:-http://localhost:5555}
-EXP=${EXP:-http://localhost:8090}
+EXP=${EXP:-http://localhost:${EXPLORER_PORT:-8090}}
 NODE=${NODE:-iota-hornet}
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }

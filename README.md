@@ -109,3 +109,4 @@ overwritten.
 | `DATABASE_URL` | explorer | `sqlite:///./explorer.db` (compose sets PostgreSQL) |
 | `HORNET_URL` | explorer | `http://iota-hornet:14265` |
 | `VERIFY_INTERVAL` / `AUDIT_INTERVAL` | explorer | `3` / `300` seconds |
+| `EXPLORER_PORT` | compose, demo.sh | `8090` (host port of the explorer; set it if 8090 is taken, e.g. `EXPLORER_PORT=8091 docker compose up -d`) |

@@ -222,6 +222,65 @@ def verify_now(block_id: str):
         return serialize(m, with_history=True)
 
 
+# ---------- traces: related events as a verified timeline (DESIGN D8/D9) ----------
+PROBLEMS = {"content_mismatch", "not_found", "conflicting"}
+
+
+def _trace_summary(trace_id: str, by_status: dict, first, last) -> dict:
+    n = sum(by_status.values())
+    return {"trace_id": trace_id, "events": n, "first_at": _iso(first), "last_at": _iso(last),
+            "by_status": by_status, "verified": by_status.get("confirmed", 0) == n,
+            "problems": sum(by_status.get(k, 0) for k in PROBLEMS)}
+
+
+@app.get("/api/traces")
+def traces(limit: int = Query(100, ge=1, le=500)):
+    """Traces with event counts and status counts, most recently active first."""
+    with SessionLocal() as s:
+        heads = s.execute(select(Message.trace_id, func.min(Message.submitted_at), func.max(Message.submitted_at))
+                          .where(Message.trace_id.is_not(None)).group_by(Message.trace_id)
+                          .order_by(func.max(Message.submitted_at).desc()).limit(limit)).all()
+        ids = [h[0] for h in heads]
+        counts: dict[str, dict] = {t: {} for t in ids}
+        for t, st, c in s.execute(select(Message.trace_id, Message.status, func.count())
+                                  .where(Message.trace_id.in_(ids)).group_by(Message.trace_id, Message.status)):
+            counts[t][st] = c
+        return [_trace_summary(t, counts[t], first, last) for t, first, last in heads]
+
+
+def _timeline(s, trace_id: str) -> dict:
+    msgs = s.scalars(select(Message).where(Message.trace_id == trace_id)
+                     .order_by(Message.submitted_at.asc(), Message.id.asc())).all()
+    if not msgs:
+        raise HTTPException(404, f"No messages stored for trace {trace_id}")
+    by_status: dict[str, int] = {}
+    for m in msgs:
+        by_status[m.status] = by_status.get(m.status, 0) + 1
+    events = [{"seq": i, **serialize(m)} for i, m in enumerate(msgs, 1)]
+    for e in events:
+        e.pop("raw")
+    return {**_trace_summary(trace_id, by_status, msgs[0].submitted_at, msgs[-1].submitted_at), "timeline": events}
+
+
+@app.get("/api/traces/{trace_id}")
+def trace_timeline(trace_id: str):
+    """The trace's events in chronological order (submit time), each with its verification state."""
+    with SessionLocal() as s:
+        return _timeline(s, trace_id)
+
+
+@app.post("/api/traces/{trace_id}/verify")
+def trace_verify(trace_id: str):
+    """Re-verify every event of the trace against its block id on Hornet now."""
+    with SessionLocal() as s:
+        msgs = s.scalars(select(Message).where(Message.trace_id == trace_id)).all()
+        if not msgs:
+            raise HTTPException(404, f"No messages stored for trace {trace_id}")
+        for m in msgs:
+            verify_message(s, m, hornet)
+        return _timeline(s, trace_id)
+
+
 @app.get("/api/tags")
 def tags():
     with SessionLocal() as s:

@@ -190,3 +190,43 @@ def test_startup_adds_missing_trace_column():
     assert add_missing_columns() == []                       # idempotent
     ingest(15, trace_id="after-upgrade")
     assert total(trace="after-upgrade") == 1
+
+
+# ---------- trace timeline (DESIGN D9) ----------
+def test_traces_list_and_timeline_order():
+    ingest(20, "trust.score", "2026-10-06T10:00:02Z", trace_id="ie-1")
+    ingest(21, "trust.reliability", "2026-10-06T10:00:01Z", trace_id="ie-1")
+    ingest(22, "trust.score", "2026-10-06T09:00:00Z", trace_id="ie-2")
+    ingest(23, "trust.score", "2026-10-06T08:00:00Z")
+    lst = client.get("/api/traces").json()
+    assert [t["trace_id"] for t in lst] == ["ie-1", "ie-2"]           # most recently active first
+    assert lst[0] == {"trace_id": "ie-1", "events": 2, "first_at": "2026-10-06T10:00:01Z",
+                      "last_at": "2026-10-06T10:00:02Z", "by_status": {"unverified": 2},
+                      "verified": False, "problems": 0}
+    tl = client.get("/api/traces/ie-1").json()
+    assert [e["block_id"] for e in tl["timeline"]] == [bid(21), bid(20)]   # chronological
+    assert [e["seq"] for e in tl["timeline"]] == [1, 2] and "raw" not in tl["timeline"][0]
+    assert client.get("/api/traces/nope").status_code == 404
+    assert client.post("/api/traces/nope/verify").status_code == 404
+
+
+def test_trace_verify_checks_every_event_against_hornet(monkeypatch):
+    """verified is true only when every event is confirmed; one tampered copy flags the trace."""
+    import json
+    payload = BLOCK["payload"]
+    text = bytes.fromhex(payload["data"][2:]).decode()
+    tag = bytes.fromhex(payload["tag"][2:]).decode()
+    base = {"tag": tag, "tag_hex": payload["tag"], "data_hex": payload["data"], "trace_id": "t-1"}
+    client.post("/api/ingest", json={**base, "block_id": BLOCK_ID, "message": json.loads(text)})
+    client.post("/api/ingest", json={**base, "block_id": bid(30), "message": json.loads(text)})
+    monkeypatch.setattr(main, "hornet", fake_hornet())          # Hornet answers with the same real block for both
+    tl = client.post("/api/traces/t-1/verify").json()
+    assert tl["verified"] is True and tl["by_status"] == {"confirmed": 2}
+    with main.SessionLocal() as s:                              # tamper one stored copy
+        from app.db import Message
+        m = s.scalar(main.select(Message).where(Message.block_id == bid(30)))
+        m.payload = {"probe": "forged"}
+        s.commit()
+    tl = client.post("/api/traces/t-1/verify").json()
+    assert tl["verified"] is False and tl["problems"] == 1
+    assert {e["block_id"]: e["verification"]["status"] for e in tl["timeline"]}[bid(30)] == "content_mismatch"

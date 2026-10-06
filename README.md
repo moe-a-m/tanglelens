@@ -93,6 +93,9 @@ Interactive docs: http://localhost:8090/docs
 | `GET /api/messages` | Search. `block_id`: full id, or a prefix of at least 6 hex chars (`0x` optional). `tag`: exact, or `trust*` for prefix. `from`, `to`: ISO 8601, inclusive, UTC unless an offset is given. Also `type`, `source`, `trace`, `status` (comma-separated), `q` (case-insensitive text in the message or tag), `milestone`. Paging: `limit` (≤ 500), `offset`; `total` is the full count. `sort`: `-submitted_at` (default), `submitted_at`, `milestone_index`, `tag` (prefix `-` for descending). |
 | `GET /api/messages/{block_id}` | Full record with verification history. |
 | `POST /api/messages/{block_id}/verify` | Re-verify against Hornet now. |
+| `GET /api/traces` | Traces (related events sharing a `trace` id): event count, first/last time, status counts, `verified` (all confirmed), `problems`. |
+| `GET /api/traces/{trace_id}` | Timeline: the trace's events in chronological order, each with its verification status, milestone and milestone time. |
+| `POST /api/traces/{trace_id}/verify` | Re-verify every event of the trace against its block id on Hornet now. |
 | `GET /api/tags` | Tags with counts and last-seen time. |
 | `GET /api/stats` | Counts per verification status. |
 | `GET /api/health` | Explorer and Hornet node status. |

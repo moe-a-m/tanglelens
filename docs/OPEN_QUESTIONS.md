@@ -3,7 +3,7 @@
 | # | Question | Ask whom | Status / answer (source, date) |
 |---|---|---|---|
 | 1 | Submission deadline is "07 Oct 2026, 14:59" on TAIKAI. In which time zone? | Organizers (TAIKAI/Discord) | **Spain time** (user, 2026-10-06): 07 Oct 2026 14:59 CEST = **12:59 UTC**. |
-| 2 | Judging criteria | Organizers | Open. The user is gathering this from TAIKAI/Discord. |
+| 2 | Judging criteria | Organizers | **Partial:** the UPV challenge slides (`docs/references/IOTA Decentralized…pdf`, p.6) list four ideas by "growing complexity" (#1 MQTT, #2 Explorer UI, #3 IoT traceability of related messages, #4 Incident Explorer: timeline, per-event BlockID verification, alerts) and say: "The jury will bear in consideration the level of complexity of the final product pitched on Thursday." The pitch is therefore on Thu 08 Oct. A full rubric is still open. |
 | 3 | Submission format (repo link, video, slides?) | Organizers | Open. The user is gathering this from TAIKAI/Discord. |
 | 4 | Do existing aeriOS callers depend on `/upload` returning HTTP 200? | User | Answered by the user on 2026-10-06: keep upstream 200; Hornet's code stays in the body as `status_code`. |
 | 5 | Port 8090 is already used by another service on the dev machine (freshrss). The explorer's host port needs to be configurable. | — | Make it configurable via `EXPLORER_PORT` (default stays 8090). |
@@ -11,3 +11,4 @@
 | 7 | Project category on TAIKAI | Organizers | **Select "Challenge 2"** as the project category (Rafa Vaño, UPV, on Discord, 2026-10-06). The user does this at submission. |
 | 8 | Why is Hornet `isHealthy=false` / `/health` 503 on the single-node tangle while milestones flow? | Hornet docs/source | Open. Doesn't block anything: verification never depends on node health. The UI must not present it as "node down". |
 | 9 | The Messages API rejects tags over 64 bytes itself (HTTP 400 + JSON error). Upstream would send them to Hornet and return **HTTP 200** wrapping Hornet's 400 (H7). Keep the early 400 or restore upstream behaviour? | User | Open. Current behaviour is tested (`test_tag_over_64_bytes_rejected_before_hornet`). Recommendation: restore upstream (drop the pre-check), same reasoning as #4. |
+| 10 | Is there a real Trust Manager IOTA message (tag + payload) we can use as demo data? The docs give none (`docs/references/aerios_trust_notes.md`) | UPV mentors | Open. Demo data uses the one verbatim example (`self.reorquestration`) plus Trust Manager vocabulary, marked as extrapolation. |

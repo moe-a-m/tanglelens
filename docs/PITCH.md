@@ -24,6 +24,10 @@ Two applications plus a database, exactly as the brief asks:
    - **Verifies content** with Hornet's GET block, comparing the exact hex bytes, the decoded JSON
      and a SHA-256 fingerprint.
    - Keeps an append-only audit trail of every check and re-audits all messages every 5 minutes.
+   - **Traces (UPV Idea #3):** an optional `trace` id groups the events of one flow, IE or sensor.
+   - **Incident Explorer (UPV Idea #4):** each trace is a chronological timeline with every event
+     verified against its own block id. Alerts fire when a message stops matching the Tangle, or
+     when a critical tag (`*.alert`) arrives. They show in a UI banner and can go to a webhook.
 
 ```
  aeriOS component ──► Messages API ──► Hornet ──► Tangle   (authoritative)
@@ -47,24 +51,25 @@ Two applications plus a database, exactly as the brief asks:
 - **Measured timing:** blocks are solid within 20 ms and milestone-referenced after 0.3–5.1 s
   (median 3.3 s, n = 20). The verifier interval (3 s) and retry budget are set from that
   measurement.
-- **Tests:** 58 automated tests pass on both SQLite and PostgreSQL. The verification unit tests
+- **Tests:** 87 automated tests pass on both SQLite and PostgreSQL. The verification unit tests
   use real Hornet responses as fixtures. A live smoke test (`make smoke-real`) runs three messages
   end to end on the real node. All summaries are saved in `reports/tests/`.
 - **Clean clone:** a fresh clone ran the stack, the tests, the smoke test and the demo
   (`reports/clean_clone/`).
 
-## 4. Live demo (about 3 minutes)
+## 4. Live demo (about 4 minutes)
 
 Before going on stage: the tangle is up (`curl -s localhost:14265/api/core/v2/info` shows milestones increasing), `make up`, browser on http://localhost:8090.
 
 | Step | Say | Do / show |
 |---|---|---|
-| 1 | "An aeriOS component publishes events through the unchanged Messages API." | `make demo` step 1: four uploads, each prints a block id |
-| 2 | "Solid is not final. Here is a block that is on the Tangle but not yet referenced by a milestone." | Step 2: on-demand verify prints `pending` (or `confirmed` if a milestone already arrived; the window is ≤ 5 s) |
-| 3 | "A few seconds later a milestone references it: confirmed, with a Tangle-attested time." | Step 3: stats show all `confirmed`. In the UI, open a message: the checklist, the milestone with its time, and the history *Awaiting milestone → Confirmed* |
-| 4 | "Search by what humans know: tag, source, text, time." | Step 4 counts. In the UI: tag `trust*`, a block-id prefix, a date range |
-| 5 | "Now someone edits the explorer's copy in the database." | Step 5 changes one field in Postgres directly, then re-verifies: **Content mismatch**, "decoded message in the database differs from the Tangle copy". Show it red in the UI |
-| 6 | "The Tangle stays the authority: the explorer can't be quietly falsified, and neither can it lie about the ledger." | Point at the raw hex and SHA-256 in the detail view |
+| 1 | "aeriOS components (Self-Awareness, Trust Manager, Self-Security) publish through the unchanged Messages API. One field, `trace`, groups the events of one IE." | `make demo` step 1: five uploads, each prints a block id |
+| 2 | "Solid is not final. This block is on the Tangle but no milestone has referenced it yet." | Step 2: on-demand verify prints `pending` (or `confirmed` if a milestone already arrived; the window is ≤ 5 s) |
+| 3 | "Seconds later a milestone references it: confirmed, with a Tangle-attested time." | Step 3: all `confirmed`. In the UI, open a message: checklist, milestone and time, history *Awaiting milestone → Confirmed* |
+| 4 | "Search by what humans know: block id, date, tag, plus source and text." | Step 4 counts. In the UI: a block-id prefix, a date range, tag `trust*` |
+| 5 | "Related events become a verified timeline. A security alert from Self-Security raised an alert as soon as it arrived." | Step 5: the trace timeline, every event checked against its own block id. In the UI: the alerts banner, then the trace link → timeline |
+| 6 | "Now someone inflates ie-2's trust score in the explorer's database, 0.61 → 0.95." | Step 6: **Content mismatch** ("decoded message in the database differs from the Tangle copy"), the trace flips to *not verified*, a new integrity alert appears in the banner |
+| 7 | "The Tangle stays the authority. The explorer makes it readable, and it can't be quietly falsified." | Point at the raw hex and SHA-256 in the detail view |
 
 Fallback if the network or tangle fails on stage: the screenshots in `docs/screenshots/` and the saved runs in `reports/demo/`.
 The development mock is **not** used in the demo. If it ever has to be, say so on screen.

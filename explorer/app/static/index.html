@@ -87,14 +87,14 @@ a.link{color:var(--focus);cursor:pointer;text-decoration:underline;text-underlin
 </header>
 
 <form class="filters" id="filters">
-  <label>Search message text<input id="f-q" type="search" placeholder="e.g. migrate, IE-3"></label>
+  <label>Search message text<input id="f-q" type="search" placeholder="e.g. ie-2, be_creative"></label>
   <label>Block ID or prefix<input id="f-id" placeholder="0x…"></label>
   <label>Tag<input id="f-tag" list="taglist" placeholder="trust.score or trust*"></label>
   <datalist id="taglist"></datalist>
   <label>From (UTC)<input id="f-from" type="datetime-local" title="Interpreted as UTC, like every time shown on this page"></label>
   <label>To (UTC)<input id="f-to" type="datetime-local" title="Interpreted as UTC, inclusive to the end of the minute"></label>
-  <label>Source<input id="f-src" placeholder="aeriOS/IE-1" style="width:130px"></label>
-  <label>Trace<input id="f-trace" placeholder="ie-1-flow" style="width:120px"></label>
+  <label>Source<input id="f-src" placeholder="aeriOS/trust-manager" style="width:160px"></label>
+  <label>Trace<input id="f-trace" placeholder="domain-1-ie-2" style="width:130px"></label>
   <button type="submit">Search</button>
   <button type="button" class="quiet" id="reset">Clear</button>
 </form>

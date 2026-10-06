@@ -8,13 +8,17 @@ with human-readable metadata, and continuously verified against the Tangle throu
 The Tangle stays the source of truth; the explorer makes it searchable and proves its copy is faithful.
 
 ```
- your app ──► Messages API (extended) ──► Hornet ──► Tangle
-                     │                       ▲
-                     │ forward (blockId,     │ GET block metadata  (solid? milestone?)
-                     │ exact tag/data hex)   │ GET block           (same bytes?)
-                     ▼                       │
-              Advanced Explorer ─────────────┘
-              REST API + web UI + PostgreSQL
+ aeriOS component ──► Messages API (extended) ──► Hornet ──► Tangle   (authoritative)
+                        │            │                 ▲
+          HTTP forward  │            │ MQTT publish    │ GET /blocks/{id}/metadata  solid? milestone? conflicting?
+          (blockId +    │            ▼                 │ GET /blocks/{id}           same bytes?
+           exact hex)   │      Mosquitto broker        │ GET /milestones/by-index   Tangle-attested time
+                        │      aerios/iota/blocks      │
+                        ▼            │ (persistent     │
+                   Advanced Explorer ◄─  session)      │
+                   REST API · web UI · PostgreSQL ─────┘
+                   messages · validations (audit) · traces/timeline · alerts ──► UI banner, webhook,
+                                                                                 MQTT aerios/explorer/alerts
 ```
 
 Everything was run and tested against a **real HORNET 2.0.2 node** (the aeriOS private tangle),
@@ -137,7 +141,9 @@ The Messages API publishes every accepted block record to `aerios/iota/blocks`, 
 publishes every alert to `aerios/explorer/alerts` (QoS 1, broker on port 1883). The explorer also
 *subscribes* to `aerios/iota/blocks` with a persistent session, so records reach it on two
 independent paths (HTTP and MQTT). Whichever arrives first creates the row; `received_via` records
-which one did. If the explorer is down for longer than the HTTP retry window, the broker keeps the
+which one did. (In practice MQTT usually wins, because the publish happens inline and the HTTP
+forward runs in a background thread. The HTTP forward is still sent every time, and it is the
+only path when MQTT is off.) If the explorer is down for longer than the HTTP retry window, the broker keeps the
 records and delivers them when it comes back (tested live: `reports/mqtt/`).
 
 Watch the live feed: `make mqtt-watch`. Set `MQTT_HOST` empty in `docker-compose.yml` to switch MQTT off.

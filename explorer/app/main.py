@@ -133,6 +133,11 @@ app = FastAPI(title="IOTA Advanced Explorer", version="1.0", lifespan=lifespan,
 @app.post("/api/ingest", status_code=201)
 def ingest(item: IngestIn):
     """Called by the Messages API after Hornet accepts a block. Idempotent on block_id."""
+    return store(item)
+
+
+def store(item: IngestIn) -> dict:
+    """Persist one forwarded record; shared by every delivery path. Idempotent on block_id."""
     text = json.dumps(item.message)                       # same encoding as the Messages API
     data_hex = item.data_hex or _to_hex(text)
     m = Message(

@@ -154,6 +154,8 @@ def verify_message(session, msg: Message, hornet: Hornet) -> Validation:
                     v.detail = f"referenced by milestone {v.referenced_by_milestone_index}"
     except httpx.HTTPError as e:
         v.status, v.detail = "error", f"Hornet request failed: {e}"
+    except ValueError as e:                  # non-JSON body or non-hex payload: the node answered nonsense
+        v.status, v.detail = "error", f"Hornet returned a malformed response: {e}"
 
     # Update the denormalised "latest state" on the message
     msg.status = v.status

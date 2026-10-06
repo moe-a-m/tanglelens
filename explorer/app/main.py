@@ -235,15 +235,17 @@ def tangle_copy(block_id: str):
         _get(s, block_id)                                  # only blocks the explorer knows about
     try:
         block = hornet.block(block_id)
+        if block is None:
+            raise HTTPException(404, f"Hornet has no block {block_id}")
+        chain = decode_payload(block)
+        digest = sha256_hex(chain["data_hex"]) if chain["data_hex"] else None
     except httpx.HTTPError as e:
         raise HTTPException(502, f"Hornet request failed: {e}")
-    if block is None:
-        raise HTTPException(404, f"Hornet has no block {block_id}")
-    chain = decode_payload(block)
+    except (ValueError, AttributeError) as e:
+        raise HTTPException(502, f"Hornet returned a malformed response: {e}")
     return {"block_id": block_id, "payload_type": chain["type"], "tag": chain["tag"], "message": chain["message"],
             "data_text": chain["data_text"], "tag_hex": chain["tag_hex"], "data_hex": chain["data_hex"],
-            "data_sha256": sha256_hex(chain["data_hex"]) if chain["data_hex"] else None,
-            "fetched_at": _iso(utcnow())}
+            "data_sha256": digest, "fetched_at": _iso(utcnow())}
 
 
 @app.post("/api/messages/{block_id}/verify")

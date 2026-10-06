@@ -182,3 +182,23 @@ def test_every_check_appends_a_validation_row(session):
         verify_message(session, m, fake_hornet(meta=meta))
     rows = session.query(Validation).filter_by(message_id=m.id).order_by(Validation.id).all()
     assert [r.status for r in rows] == ["pending", "confirmed", "confirmed"] and m.check_count == 3
+
+
+# ---------- code review: malformed node responses ----------
+def html_hornet():
+    h = Hornet("http://hornet.test")
+    h.client = httpx.Client(base_url="http://hornet.test", transport=httpx.MockTransport(
+        lambda r: httpx.Response(200, text="<html>proxy error</html>")))
+    return h
+
+
+def test_non_json_hornet_body_is_error_not_crash(session):
+    v = verify_message(session, make_message(session), html_hornet())
+    assert v.status == "error" and "malformed" in v.detail
+
+
+def test_non_hex_chain_data_is_error_not_crash(session):
+    block = copy.deepcopy(BLOCK)
+    block["payload"]["data"] = "0xZZ"
+    v = verify_message(session, make_message(session), fake_hornet(block=block))
+    assert v.status == "error" and "malformed" in v.detail      # node answered nonsense: not a verdict

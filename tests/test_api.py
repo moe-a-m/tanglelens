@@ -260,3 +260,10 @@ def test_overlong_metadata_is_422_not_500(field, limit):
     base = {"block_id": bid(88), "tag": "t", "message": {}}
     assert client.post("/api/ingest", json={**base, field: "x" * (limit + 1)}).status_code == 422
     assert client.post("/api/ingest", json={**base, field: "x" * limit}).status_code == 201
+
+
+def test_tangle_copy_malformed_hornet_is_502(monkeypatch):
+    from test_verify import html_hornet
+    ingest(79)
+    monkeypatch.setattr(main, "hornet", html_hornet())
+    assert client.get(f"/api/messages/{bid(79)}/tangle").status_code == 502

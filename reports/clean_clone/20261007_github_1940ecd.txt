@@ -1,0 +1,30 @@
+# Final clean-clone check from GitHub (git@github.com:moe-a-m/tanglelens.git) at 1940ecd, 2026-10-07T11:26:54Z
+Real tangle already running (bootstrapped with sudo by the user).
+$ EXPLORER_PORT=8091 make up
+ Container mqtt-broker Started 
+ Container explorer-db Started 
+ Container iota-messages-api Started 
+ Container advanced-explorer Started 
+$ make test
+114 passed, 1 skipped, 1 deselected in 21.00s
+115 passed, 1 deselected in 14.76s
+$ make smoke-real
+1 passed, 115 deselected in 4.54s
+$ EXPLORER_PORT=8091 make demo
+  status: pending | solid: True | milestone: None | content match: True
+{"total":8,"by_status":{"confirmed":8},"latest_milestone":14452}
+  block id  0x70f338f922f0382a8963c374919ffa5ef7e7baad190f4e67af646cebd0c2020d            -> 1
+  block id prefix 0x70f338f922                -> 1
+  date      from=2026-10-07T11:26:24Z to=2026-10-07T11:29:24Z -> 8
+  tag       trust.score                     -> 2 (this run)
+  tag       trust*                          -> 4 (this run)
+  source    aeriOS/trust-manager            -> 2 (this run)
+  text      be_creative                     -> 1 (this run)
+  verified: True | events: 2 | problems: 0
+  open alerts: 1 - application:trust.security.alert
+6. Someone inflates ie-2's trust score in the explorer's database (0.61 -> 0.95)...
+  status: content_mismatch
+  trace domain-1-ie-2-142814 verified: False | problems: 1
+  newest alert: integrity confirmed -> content_mismatch on 0x70f338f922f0382a…
+$ make down
+0

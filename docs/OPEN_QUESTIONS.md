@@ -2,9 +2,9 @@
 
 | # | Question | Ask whom | Status / answer (source, date) |
 |---|---|---|---|
-| 1 | Submission deadline is "07 Oct 2026, 14:59" on TAIKAI. In which time zone? | Organizers (TAIKAI/Discord) | **Spain time** (user, 2026-10-06): 07 Oct 2026 14:59 CEST = **12:59 UTC**. |
+| 1 | Submission deadline is "07 Oct 2026, 14:59" on TAIKAI. In which time zone? | Organizers (TAIKAI/Discord) | **Official (organizers' reminder email, 2026-10-07): Oct 7th, 16:59 UTC+2 = 14:59 UTC.** Supersedes the earlier assumption of 14:59 CEST. |
 | 2 | Judging criteria | Organizers | **Partial:** the UPV challenge slides (`docs/references/IOTA Decentralized…pdf`, p.6) list four ideas by "growing complexity" (#1 MQTT, #2 Explorer UI, #3 IoT traceability of related messages, #4 Incident Explorer: timeline, per-event BlockID verification, alerts) and say: "The jury will bear in consideration the level of complexity of the final product pitched on Thursday." The pitch is therefore on Thu 08 Oct. A full rubric is still open. |
-| 3 | Submission format (repo link, video, slides?) | Organizers | **Slides** (user decision, 2026-10-07), plus the public repository required by the Rules (licence file). |
+| 3 | Submission format (repo link, video, slides?) | Organizers | **Official (reminder email, 2026-10-07): a project on TAIKAI, associated to the challenge category, with the 3-slide presentation (organizers' template in Discord #resources) attached as PDF.** Mentors pick at most 3 projects per challenge for the Thursday pitch; teams are told around 19:00 UTC+2 on Oct 7. The 14-slide deck (`docs/slides/`) is for that pitch. Public repo per the Rules (licence file). |
 | 4 | Do existing aeriOS callers depend on `/upload` returning HTTP 200? | User | Answered by the user on 2026-10-06: keep upstream 200; Hornet's code stays in the body as `status_code`. |
 | 5 | Port 8090 is already used by another service on the dev machine (freshrss). The explorer's host port needs to be configurable. | — | Make it configurable via `EXPLORER_PORT` (default stays 8090). |
 | 6 | Which licence must the repository use? | Organizers | **Apache-2.0 is accepted** (Rafa Vaño, UPV, on Discord, 2026-10-06 16:18). The Rules say repos without the correct licence file are ineligible, so the root `LICENSE` is Apache-2.0. |

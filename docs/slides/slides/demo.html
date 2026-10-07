@@ -1,17 +1,11 @@
-<section id="demo" data-transition="fade" style="background:#FBFBF8;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
-<div style="display:flex;flex-direction:column;gap:16px">
-<p style="font-size:24px;font-weight:600;color:#2F5BEA;letter-spacing:1px">LIVE DEMO · REAL NODE · ABOUT 4 MINUTES</p>
-<h2 style="font-size:72px;font-weight:600;line-height:1.1">make demo</h2>
+<section id="demo" data-transition="fade" style="background:#14213D;color:#EEF2F5;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;justify-content:center;gap:48px">
+<p style="font-size:24px;font-weight:600;color:#8FB0FF;letter-spacing:1px">LIVE ON THE REAL aeriOS TANGLE</p>
+<h2 style="font-size:72px;font-weight:600;line-height:1.1;color:#F4F6F8">An inflated trust score, caught</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+<div style="background:#22335A;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:8px"><h3 style="font-size:32px;font-weight:600;color:#F4F6F8">1 · Confirmed</h3><p style="font-size:26px;line-height:1.4;color:#BFD0E6">ie-2's trust score 0.61, referenced by a milestone, trace verified</p></div>
+<div style="background:#22335A;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:8px"><h3 style="font-size:32px;font-weight:600;color:#F4F6F8">2 · Tampered</h3><p style="font-size:26px;line-height:1.4;color:#BFD0E6">Someone sets it to 0.95 in the explorer's database</p></div>
+<div style="background:#22335A;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:8px"><h3 style="font-size:32px;font-weight:600;color:#F4F6F8">3 · Caught</h3><p style="font-size:26px;line-height:1.4;color:#BFD0E6">Content mismatch, side by side with the Tangle, alert raised</p></div>
 </div>
-<table style="width:1664px;font-size:28px;color:#14213D">
-<tr><th style="width:8%;text-align:left">Step</th><th style="width:46%;text-align:left">What happens</th><th style="width:46%;text-align:left">What to look at</th></tr>
-<tr><td>1</td><td>Five aeriOS trust messages published</td><td>Block ids from the unchanged /upload</td></tr>
-<tr><td>2</td><td>Verified right after insertion</td><td>Pending (solid), then confirmed</td></tr>
-<tr><td>3</td><td>Search by block id, date and tag</td><td>Counts in the terminal, filters in the UI</td></tr>
-<tr><td>4</td><td>MQTT live feed (make mqtt-watch)</td><td>Block records and alerts as they happen</td></tr>
-<tr><td>5</td><td>Trace timeline for one IE</td><td>Every event checked against its block id</td></tr>
-<tr><td>6</td><td>Trust score inflated in the database</td><td>Content mismatch, side by side, alert</td></tr>
-</table>
-<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B6B7F">Fallback: screenshots in docs/screenshots and saved runs in reports/demo. The development mock is never used in the demo.</p>
-<aside>Switch to the terminal and the browser. Run make demo; in a second terminal run make mqtt-watch. Narrate each step. If a milestone arrives before step 2's check, it shows confirmed instead of pending; say that blocks are confirmed within about 5 seconds. If the network fails, use the screenshots and the saved run.</aside>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#BFD0E6">Fallback: docs/pitch/tanglelens_demo_fallback.mp4 (35 s, recorded on the real node)</p>
+<aside>[1:20–3:00, LIVE DEMO, max 100 s] Switch to the browser (TangleLens UI, already prepared with make pitch-setup). (1) Click ie-2's trust.score: "On the Tangle, solid, referenced by milestone N, contents identical." (2) Click its trace: "Every event of ie-2, each verified against its own block id." (3) In the terminal: make pitch-tamper. "Someone just changed 0.61 to 0.95 in our database." (4) Back in the browser within 5 seconds: the trace is no longer verified, the alert banner opens. Click the red event: stored copy next to the Tangle copy, "Fields that differ: trust_score". "The Tangle stays the authority." If anything fails, play the fallback video instead and narrate the same four steps.</aside>
 </section>

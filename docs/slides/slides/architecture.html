@@ -19,5 +19,5 @@
 <p style="position:absolute;left:700px;top:478px;width:330px;font-size:24px;line-height:1.3;color:#2F5BEA">HTTP forward + MQTT<br>block id + exact hex</p>
 <p style="position:absolute;left:1240px;top:462px;width:240px;font-size:24px;line-height:1.3;color:#2E7D5B">GET metadata<br>GET block<br>GET milestone</p>
 <p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B6B7F">Explorer = a readable, verified copy. Every claim about Hornet is backed by a saved raw response (reports/hornet/)</p>
-<aside>The flow: an aeriOS component calls the Messages API, which submits the block to Hornet. After Hornet accepts it, the API forwards the block id and the exact bytes to the explorer, over HTTP and over MQTT. The explorer then checks every message against Hornet: metadata for solidity and milestone, the block itself for content, and the milestone for a Tangle-attested timestamp.</aside>
+<aside>[0:40–1:20] We built exactly the two applications the brief asks for. The aeriOS Messages API, extended but with the same contract, forwards every accepted block with its exact bytes, over HTTP and MQTT. The explorer keeps a readable, searchable copy in PostgreSQL and checks every block against Hornet: GET block metadata for solid and milestone, GET block for the content. The Tangle stays the authority. Let me show you.</aside>
 </section>

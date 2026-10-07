@@ -1,0 +1,17 @@
+<section id="beyond" data-transition="fade" style="background:#F4F6F8;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:600;color:#2F5BEA;letter-spacing:1px">BEYOND THE BRIEF · UPV IDEAS #1, #3, #4</p>
+<h2 style="font-size:64px;font-weight:600;line-height:1.1">From explorer to incident explorer, tested live</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px">
+<div style="background:#FBFBF8;border:1px solid #D3DBE3;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:10px"><h3 style="font-size:32px;font-weight:600">#3 Traces</h3><p style="font-size:26px;line-height:1.4;color:#4A5568">A trace id groups the events of one IE, flow or sensor; searchable.</p></div>
+<div style="background:#FBFBF8;border:1px solid #D3DBE3;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:10px"><h3 style="font-size:32px;font-weight:600">#4 Timeline and alerts</h3><p style="font-size:26px;line-height:1.4;color:#4A5568">Events in order, each verified against its block id; alerts in the UI, webhook and MQTT.</p></div>
+<div style="background:#FBFBF8;border:1px solid #D3DBE3;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:10px"><h3 style="font-size:32px;font-weight:600">#1 MQTT</h3><p style="font-size:26px;line-height:1.4;color:#4A5568">Live feed of records and alerts, plus a second delivery path.</p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+<div style="background:#14213D;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:10px"><h3 style="font-size:32px;font-weight:600;color:#F4F6F8">Survives outages</h3><p style="font-size:26px;line-height:1.4;color:#BFD0E6">Explorer down 25 s or database down 25 s: the HTTP forward gave up, MQTT still delivered every record, all confirmed.</p></div>
+<div style="background:#14213D;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:10px"><h3 style="font-size:32px;font-weight:600;color:#F4F6F8">Next steps</h3><p style="font-size:26px;line-height:1.4;color:#BFD0E6">Backfill from the Tangle, auth and TLS, multi-node peering, an official Trust Manager schema with UPV.</p></div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B6B7F">Run it: git clone github.com/moe-a-m/tanglelens · make up · make demo · make test</p>
+<aside>Following the UPV slides, we went beyond the mandatory scope: traces group related events, the incident timeline verifies each one against its block id and raises alerts, and MQTT adds a live feed and a second delivery path. We tested two outages live on the real node and lost nothing. Limits and next steps are stated honestly; the repository runs from a clean clone with three commands.</aside>
+</section>

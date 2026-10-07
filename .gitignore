@@ -10,3 +10,4 @@ __pycache__/
 
 # Organizer documents: kept locally, not redistributed (user decision 2026-10-07)
 docs/references/*.pdf
+docs/submission/template/

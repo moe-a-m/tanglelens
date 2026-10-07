@@ -7,18 +7,18 @@ published through the Messages API is also stored in a searchable PostgreSQL dat
 with human-readable metadata, and continuously verified against the Tangle through the Hornet API.
 The Tangle stays the source of truth; the explorer makes it searchable and proves its copy is faithful.
 
-```
- aeriOS component ──► Messages API (extended) ──► Hornet ──► Tangle   (authoritative)
-                        │            │                 ▲
-          HTTP forward  │            │ MQTT publish    │ GET /blocks/{id}/metadata  solid? milestone? conflicting?
-          (blockId +    │            ▼                 │ GET /blocks/{id}           same bytes?
-           exact hex)   │      Mosquitto broker        │ GET /milestones/by-index   Tangle-attested time
-                        │      aerios/iota/blocks      │
-                        ▼            │ (persistent     │
-                   Advanced Explorer ◄─  session)      │
-                   REST API · web UI · PostgreSQL ─────┘
-                   messages · validations (audit) · traces/timeline · alerts ──► UI banner, webhook,
-                                                                                 MQTT aerios/explorer/alerts
+```mermaid
+flowchart LR
+    C["aeriOS component"] -->|"POST /upload"| API["Messages API<br/>(extended aeriOS API)"]
+    API -->|"POST block"| H["Hornet 2.0.2<br/>REST :14265"]
+    H --- T[("IOTA Tangle<br/>authoritative")]
+    API -->|"HTTP forward<br/>block id + exact hex"| EXP["Advanced Explorer<br/>REST API · web UI"]
+    API -->|"MQTT publish"| MQ["Mosquitto broker<br/>aerios/iota/blocks"]
+    MQ -->|"persistent session"| EXP
+    EXP -->|"GET block metadata<br/>GET block<br/>GET milestone"| H
+    EXP <--> DB[("PostgreSQL<br/>messages · validations · alerts")]
+    U["Operators"] -->|"browser / REST"| EXP
+    EXP -->|"alerts"| AL["UI banner · webhook<br/>MQTT aerios/explorer/alerts"]
 ```
 
 Everything was run and tested against a **real HORNET 2.0.2 node** (the aeriOS private tangle),
@@ -129,6 +129,28 @@ For each stored message the explorer calls:
 1. `GET /api/core/v2/blocks/{blockId}/metadata` for `isSolid`, `referencedByMilestoneIndex` and `ledgerInclusionState`.
 2. `GET /api/core/v2/blocks/{blockId}` and compares the on-chain `payload.tag` and `payload.data` with what it stored, at three levels: the exact hex bytes, the decoded JSON, and a SHA-256 fingerprint. Tampering with either the raw or the human-readable copy in the database is detected.
 3. `GET /api/core/v2/milestones/by-index/{index}` to record the milestone timestamp, a Tangle-attested time for the message.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> unverified: stored (HTTP or MQTT)
+    unverified --> not_solid: isSolid false
+    unverified --> pending: solid, no milestone yet
+    not_solid --> pending: past cone complete
+    pending --> confirmed: referenced by a milestone
+    unverified --> confirmed: already referenced
+    unverified --> content_mismatch: stored copy differs
+    confirmed --> content_mismatch: re-audit finds an edit
+    unverified --> not_found: Hornet 404
+    unverified --> conflicting: ledger says conflicting
+    note right of confirmed
+        re-audited every 5 min
+    end note
+    note left of unverified
+        error (Hornet unreachable) is retried
+        and keeps the last known state
+    end note
+```
 
 | Status | UI label | Meaning | Rechecked? |
 |---|---|---|---|

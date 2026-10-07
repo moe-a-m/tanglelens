@@ -32,18 +32,18 @@ Two applications plus a database, exactly as the brief asks:
      subscribes with a persistent session, so a record still arrives after an explorer outage
      longer than the HTTP retry window (tested live). Alerts are published as a live feed.
 
-```
- aeriOS component ──► Messages API (extended) ──► Hornet ──► Tangle   (authoritative)
-                        │            │                 ▲
-          HTTP forward  │            │ MQTT publish    │ GET /blocks/{id}/metadata  solid? milestone? conflicting?
-          (blockId +    │            ▼                 │ GET /blocks/{id}           same bytes?
-           exact hex)   │      Mosquitto broker        │ GET /milestones/by-index   Tangle-attested time
-                        │      aerios/iota/blocks      │
-                        ▼            │ (persistent     │
-                   Advanced Explorer ◄─  session)      │
-                   REST API · web UI · PostgreSQL ─────┘
-                   messages · validations (audit) · traces/timeline · alerts ──► UI banner, webhook,
-                                                                                 MQTT aerios/explorer/alerts
+```mermaid
+flowchart LR
+    C["aeriOS component"] -->|"POST /upload"| API["Messages API<br/>(extended aeriOS API)"]
+    API -->|"POST block"| H["Hornet 2.0.2<br/>REST :14265"]
+    H --- T[("IOTA Tangle<br/>authoritative")]
+    API -->|"HTTP forward<br/>block id + exact hex"| EXP["Advanced Explorer<br/>REST API · web UI"]
+    API -->|"MQTT publish"| MQ["Mosquitto broker<br/>aerios/iota/blocks"]
+    MQ -->|"persistent session"| EXP
+    EXP -->|"GET block metadata<br/>GET block<br/>GET milestone"| H
+    EXP <--> DB[("PostgreSQL<br/>messages · validations · alerts")]
+    U["Operators"] -->|"browser / REST"| EXP
+    EXP -->|"alerts"| AL["UI banner · webhook<br/>MQTT aerios/explorer/alerts"]
 ```
 
 ## 3. Why you can trust it (verified, not assumed)

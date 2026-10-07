@@ -77,15 +77,12 @@ for e in t["timeline"]:
     v=e["verification"]; print("  #%s %s %-22s %-10s milestone %s" % (e["seq"], e["submitted_at"], e["tag"], v["status"], v["milestone_index"]))'
 echo "  open alerts: $(curl -s "$EXP/api/alerts?unacknowledged=true" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d["open"], "-", ", ".join(sorted({a["kind"]+":"+a["tag"] for a in d["items"]})))')"
 
-say "6. Someone inflates ie-2's trust score in the explorer's database (0.61 -> 0.95)..."
-docker exec explorer-db psql -U explorer -q -c \
-  "update messages set payload='{\"domain_name\": \"domain-1\", \"ie\": \"ie-2\", \"trust_score\": 0.95, \"reliability\": 0.74, \"security\": 0.52, \"reputation\": 0.70, \"penalty\": 0.05}'::json where block_id='$B4'"
-curl -s -X POST "$EXP/api/messages/$B4/verify" | python3 -c '
-import sys,json; d=json.load(sys.stdin)
-print("  status:", d["verification"]["status"]); print("  why:   ", d["history"][0]["detail"])'
-curl -s "$EXP/api/traces/$IE2" | python3 -c '
-import sys,json; t=json.load(sys.stdin); print("  trace", t["trace_id"], "verified:", t["verified"], "| problems:", t["problems"])'
-curl -s "$EXP/api/alerts?limit=1" | python3 -c '
-import sys,json; a=json.load(sys.stdin)["items"][0]; print("  newest alert:", a["kind"], a["previous_status"], "->", a["status"], "on", a["block_id"][:18]+"…")'
+# Remember what step 6 needs, so the tamper can also be run on its own (make pitch-tamper)
+printf 'B4=%s\nIE2=%s\nEXP=%s\n' "$B4" "$IE2" "$EXP" > "$(dirname "$0")/../.demo-state"
+if [ "${STOP_BEFORE_TAMPER:-0}" = 1 ]; then
+  say "Ready. Open $EXP (trace $IE2), then run: make pitch-tamper"
+  exit 0
+fi
+"$(dirname "$0")/tamper.sh"
 
 say "Open $EXP to browse, follow the trace $IE2 and inspect every message."

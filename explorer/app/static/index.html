@@ -221,7 +221,7 @@ async function showDetail(id){
       <li>${mark(last.data_match)} Message content matches</li>
     </ul>
     <div class="actions"><button onclick="reverify('${m.block_id}')">Verify again</button>
-      <button class="quiet" onclick="navigator.clipboard.writeText('${m.block_id}')">Copy block ID</button></div>
+      <button class="quiet" onclick="copyId(this, '${m.block_id}')">Copy block ID</button></div>
     <div id="cmp-slot">${v.status === "content_mismatch" && cmpCache[m.block_id] ? cmpCache[m.block_id] : `
       <h2>Message</h2>
       <pre>${esc(JSON.stringify(m.message, null, 2))}</pre>`}
@@ -319,6 +319,21 @@ document.addEventListener("keydown", e => {
   const li = e.target.closest(".tl li"); if (li && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); showDetail(li.dataset.id); }
 });
 
+// navigator.clipboard exists only on secure origins (https, localhost); opened via a LAN/WSL IP
+// it is undefined, so fall back to a hidden textarea + execCommand and always show the outcome.
+async function copyId(btn, id){
+  let ok = false;
+  try { await navigator.clipboard.writeText(id); ok = true; } catch (_) {
+    const ta = Object.assign(document.createElement("textarea"), {value: id, readOnly: true});
+    ta.style.cssText = "position:fixed;opacity:0";
+    document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand("copy"); } catch (_) {}
+    ta.remove();
+  }
+  const label = btn.textContent;
+  btn.textContent = ok ? "Copied" : "Copy failed: select the ID below";
+  setTimeout(() => { btn.textContent = label; }, 1500);
+}
 async function reverify(id){ delete cmpCache[id]; await fetch(`/api/messages/${encodeURIComponent(id)}/verify`, {method:"POST"}); refresh(); showDetail(id); }
 
 function refresh(){ loadList(); loadStats(); }
